@@ -131,9 +131,142 @@ function IndexPopup() {
   }
   
   async function handleViewDashboard() {
-    // Open a new tab with the dashboard
-    chrome.tabs.create({ 
-      url: chrome.runtime.getURL("tabs/dashboard.html") 
+    // Show dashboard info in a new window with current stats
+    const tabsAnalysis = await chrome.runtime.sendMessage({ action: "getTabsAnalysis" })
+    
+    // Create a simple dashboard page
+    const dashboardHTML = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TabAI Dashboard</title>
+  <meta charset="utf-8">
+  <style>
+    body {
+      margin: 0;
+      padding: 40px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f3f4f6;
+      color: #1f2937;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(to right, #9333ea, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      color: #6b7280;
+      margin-bottom: 3rem;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 3rem;
+    }
+    .stat-card {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: bold;
+      background: linear-gradient(to right, #9333ea, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .stat-label {
+      color: #6b7280;
+      font-size: 0.875rem;
+      margin-top: 0.5rem;
+    }
+    .info-card {
+      background: white;
+      padding: 32px;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .info-card h2 {
+      margin-bottom: 1rem;
+      color: #1f2937;
+    }
+    .productivity-score {
+      display: inline-block;
+      padding: 8px 16px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>TabAI Dashboard</h1>
+    <p class="subtitle">AI-powered insights for your browsing habits</p>
+    
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">${tabs.length}</div>
+        <div class="stat-label">Total Tabs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${tabsAnalysis?.categoryCounts ? Object.keys(tabsAnalysis.categoryCounts).length : 0}</div>
+        <div class="stat-label">Categories</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${tabsAnalysis?.duplicates ? tabsAnalysis.duplicates.reduce((sum: number, d: any) => sum + d.count - 1, 0) : 0}</div>
+        <div class="stat-label">Duplicate Tabs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">
+          <span class="productivity-score">${productivityScore}%</span>
+        </div>
+        <div class="stat-label">Productivity Score</div>
+      </div>
+    </div>
+    
+    <div class="info-card">
+      <h2>📊 Full Dashboard Coming Soon!</h2>
+      <p>We're working on advanced features including:</p>
+      <ul>
+        <li>📈 Detailed browsing patterns and time analysis</li>
+        <li>🎯 Personalized productivity recommendations</li>
+        <li>📊 Category distribution charts</li>
+        <li>⏰ Time-based activity heatmaps</li>
+        <li>🔍 Deep insights powered by AI</li>
+      </ul>
+    </div>
+    
+    <div class="info-card">
+      <h2>💡 Quick Tips</h2>
+      <ul>
+        <li>Use <strong>Smart Organize</strong> to automatically group your tabs by category</li>
+        <li>Assign custom categories to domains for better organization</li>
+        <li>Check your productivity score regularly to stay focused</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>`;
+
+    // Create a blob URL for the dashboard
+    const blob = new Blob([dashboardHTML], { type: 'text/html' })
+    const url = URL.createObjectURL(blob)
+    
+    // Open in new tab
+    chrome.tabs.create({ url }, (tab) => {
+      // Clean up blob URL after a delay
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
     })
   }
   

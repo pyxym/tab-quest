@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react"
-import { AILogo } from "../src/components/AILogo"
-import { ProductivityScore } from "../src/components/ProductivityScore"
-import "../style.css"
+import { AILogo } from "../components/AILogo"
+import { ProductivityScore } from "../components/ProductivityScore"
+import "../../style.css"
 
 interface TabData {
   id: number
