@@ -128,6 +128,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true
   }
   
+  if (request.action === "getCategoryForDomain") {
+    getCategoryForDomain(request.domain).then(sendResponse)
+    return true
+  }
+  
   if (request.action === "findDuplicates") {
     findDuplicateTabs().then(sendResponse)
     return true

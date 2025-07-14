@@ -3,6 +3,7 @@ import { AILogo } from "./components/AILogo"
 import { AIInsightCard } from "./components/AIInsightCard"
 import { ProductivityScore } from "./components/ProductivityScore"
 import { CategoryManager } from "./components/CategoryManager"
+import { TabList } from "./components/TabList"
 import { useTabStore } from "./store/tabStore"
 import { useAIStore } from "./store/aiStore"
 import { calculateProductivityScore, findDuplicates } from "./utils/tabAnalyzer"
@@ -14,6 +15,7 @@ function IndexPopup() {
   const [analysis, setAnalysis] = useState<any>(null)
   const [isOrganizing, setIsOrganizing] = useState(false)
   const [showCategoryManager, setShowCategoryManager] = useState(false)
+  const [showTabList, setShowTabList] = useState(false)
   
   useEffect(() => {
     loadTabsAndAnalyze()
@@ -150,6 +152,15 @@ function IndexPopup() {
             </div>
             <div className="flex items-center gap-2">
               <button
+                onClick={() => setShowTabList(true)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                title="Assign Tabs to Categories"
+              >
+                <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+              </button>
+              <button
                 onClick={() => setShowCategoryManager(true)}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 title="Manage Categories"
@@ -223,6 +234,10 @@ function IndexPopup() {
       
       {showCategoryManager && (
         <CategoryManager onClose={() => setShowCategoryManager(false)} />
+      )}
+      
+      {showTabList && (
+        <TabList onClose={() => setShowTabList(false)} />
       )}
     </>
   )
