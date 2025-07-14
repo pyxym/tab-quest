@@ -1,0 +1,36 @@
+{
+  "name": "tabai",
+  "displayName": "TabAI - AI-Powered Tab Assistant",
+  "version": "0.0.1",
+  "description": "AI가 주도하는 차세대 브라우저 탭 관리의 미래",
+  "author": "TabAI",
+  "license": "MIT",
+  "scripts": {
+    "dev": "plasmo dev",
+    "build": "plasmo build",
+    "package": "plasmo package"
+  },
+  "dependencies": {
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "zustand": "^5.0.6"
+  },
+  "devDependencies": {
+    "@types/chrome": "0.0.258",
+    "@types/react": "18.2.48",
+    "@types/react-dom": "18.2.18",
+    "autoprefixer": "^10.4.21",
+    "plasmo": "^0.90.5",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.1",
+    "typescript": "5.3.3"
+  },
+  "manifest": {
+    "permissions": [
+      "tabs",
+      "storage",
+      "activeTab",
+      "tabGroups"
+    ]
+  }
+}
