@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { useCategoryStore } from "../store/categoryStore"
+import { FavIcon } from "./FavIcon"
 import type { Category } from "../types/category"
 
 interface TabListProps {
@@ -67,16 +68,16 @@ export const TabList: React.FC<TabListProps> = ({ onClose }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
+      <div className="glass-main rounded-[24px] w-full max-w-2xl h-[90vh] max-h-[90vh] flex flex-col">
+        <div className="px-4 py-4 border-b border-white/20">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            <h2 className="text-lg font-semibold ai-gradient-text">
               Assign Tabs to Categories
             </h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              className="glass-button-primary !p-2 !px-3"
             >
               ✕
             </button>
@@ -88,7 +89,7 @@ export const TabList: React.FC<TabListProps> = ({ onClose }) => {
             {tabs.map((tab) => (
               <div 
                 key={tab.id} 
-                className={`p-3 bg-gray-50 dark:bg-gray-700 rounded-lg transition-all ${
+                className={`glass-card !py-2.5 !px-3 transition-all ${
                   selectedTab === tab.id ? 'ring-2 ring-green-500' : ''
                 }`}
               >
@@ -96,21 +97,14 @@ export const TabList: React.FC<TabListProps> = ({ onClose }) => {
                   {/* Tab Info Row */}
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     {/* Favicon */}
-                    <img 
-                      src={tab.favIconUrl || '/assets/icon.png'} 
-                      alt="" 
-                      className="w-5 h-5 rounded flex-shrink-0"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/assets/icon.png'
-                      }}
-                    />
+                    <FavIcon url={tab.favIconUrl || tab.url} size={20} className="flex-shrink-0" />
                     
                     {/* Tab Details */}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                      <p className="text-sm font-medium glass-text truncate">
                         {tab.title || 'Untitled'}
                       </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                      <p className="text-xs glass-text opacity-70 truncate">
                         {tab.url ? new URL(tab.url).hostname : 'Unknown'}
                       </p>
                     </div>
@@ -126,7 +120,7 @@ export const TabList: React.FC<TabListProps> = ({ onClose }) => {
                       value={tab.category || "other"}
                       onChange={(e) => handleCategoryChange(tab.id!, tab.url!, e.target.value)}
                       disabled={isUpdating || !tab.url}
-                      className="px-2 py-1 text-sm bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md focus:ring-2 focus:ring-purple-500 min-w-[120px]"
+                      className="px-3 py-1.5 text-sm glass-card !p-2 border-none outline-none focus:ring-2 focus:ring-purple-500/50 min-w-[120px] glass-text"
                     >
                       {categories.map(category => (
                         <option key={category.id} value={category.id}>
@@ -148,8 +142,8 @@ export const TabList: React.FC<TabListProps> = ({ onClose }) => {
           </div>
         </div>
 
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
-          <p className="text-xs text-gray-600 dark:text-gray-400">
+        <div className="px-4 py-4 border-t border-white/20">
+          <p className="text-xs glass-text opacity-80">
             💡 Tip: When you change a tab's category, all tabs from the same domain will be grouped together
           </p>
         </div>

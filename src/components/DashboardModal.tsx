@@ -98,24 +98,24 @@ export const DashboardModal: React.FC<DashboardModalProps> = ({ onClose }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
+      <div className="glass-convex w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="p-5 border-b border-white/20">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold ai-gradient-text">TabAI Dashboard</h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              <h1 className="text-xl font-bold ai-gradient-text">
+                TabAI Dashboard
+              </h1>
+              <p className="text-sm glass-text opacity-80 mt-1">
                 AI-powered insights for your browsing habits
               </p>
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-2"
+              className="glass-button-primary !p-2 !px-3"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              ✕
             </button>
           </div>
         </div>
@@ -125,34 +125,34 @@ export const DashboardModal: React.FC<DashboardModalProps> = ({ onClose }) => {
           {isLoading ? (
             <div className="text-center py-8">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-              <p className="mt-2 text-gray-600 dark:text-gray-400">Loading dashboard data...</p>
+              <p className="mt-2 glass-text opacity-70">Loading dashboard data...</p>
             </div>
           ) : (
             <>
               {/* Stats Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="ai-card text-center">
+                <div className="glass-card text-center">
                   <p className="text-2xl font-bold ai-gradient-text">{totalTabs}</p>
-                  <p className="text-xs text-gray-500 mt-1">Total Tabs</p>
+                  <p className="text-xs glass-text opacity-70 mt-1">Total Tabs</p>
                 </div>
-                <div className="ai-card text-center">
+                <div className="glass-card text-center">
                   <p className="text-2xl font-bold ai-gradient-text">{categoryStats.length}</p>
-                  <p className="text-xs text-gray-500 mt-1">Categories</p>
+                  <p className="text-xs glass-text opacity-70 mt-1">Categories</p>
                 </div>
-                <div className="ai-card text-center">
+                <div className="glass-card text-center">
                   <p className="text-2xl font-bold ai-gradient-text">{duplicates}</p>
-                  <p className="text-xs text-gray-500 mt-1">Duplicates</p>
+                  <p className="text-xs glass-text opacity-70 mt-1">Duplicates</p>
                 </div>
-                <div className="ai-card text-center">
+                <div className="glass-card text-center">
                   <ProductivityScore score={productivityScore} compact />
-                  <p className="text-xs text-gray-500 mt-1">Productivity</p>
+                  <p className="text-xs glass-text opacity-70 mt-1">Productivity</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Category Distribution */}
-                <div className="ai-card">
-                  <h3 className="font-semibold mb-4 flex items-center gap-2">
+                <div className="glass-card">
+                  <h3 className="font-semibold mb-4 flex items-center gap-2 glass-text">
                     <span className="text-lg">📊</span> Category Distribution
                   </h3>
                   <div className="space-y-3">
@@ -181,8 +181,8 @@ export const DashboardModal: React.FC<DashboardModalProps> = ({ onClose }) => {
                 </div>
 
                 {/* Most Visited */}
-                <div className="ai-card">
-                  <h3 className="font-semibold mb-4 flex items-center gap-2">
+                <div className="glass-card">
+                  <h3 className="font-semibold mb-4 flex items-center gap-2 glass-text">
                     <span className="text-lg">🔥</span> Most Visited Sites
                   </h3>
                   <div className="space-y-3">

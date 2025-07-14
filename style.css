@@ -3,28 +3,180 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100;
+  :root {
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
   }
 }
 
 @layer components {
-  .ai-gradient {
-    @apply bg-gradient-to-r from-ai-primary via-ai-secondary to-ai-accent;
+  /* Main glass container with Apple style */
+  .glass-main {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 
+      0 25px 50px -12px rgba(0, 0, 0, 0.25),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.5);
   }
   
+  /* Dark mode glass */
+  @media (prefers-color-scheme: dark) {
+    .glass-main {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  }
+  
+  /* True Apple Glassmorphism */
+  .glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 
+      0 8px 32px 0 rgba(31, 38, 135, 0.37),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+  }
+  
+  /* Convex glass effect for dashboard */
+  .glass-convex {
+    position: relative;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.25) 0%,
+      rgba(255, 255, 255, 0.1) 40%,
+      rgba(255, 255, 255, 0.05) 60%,
+      rgba(255, 255, 255, 0.1) 100%
+    );
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 
+      inset 0 2px 4px 0 rgba(255, 255, 255, 0.5),
+      0 30px 60px -15px rgba(0, 0, 0, 0.2);
+    border-radius: 24px;
+  }
+  
+  /* Glass card with proper transparency */
+  .glass-card {
+    @apply relative overflow-hidden rounded-2xl p-4;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 
+      0 8px 16px 0 rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    .glass-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  }
+  
+  /* Glass button with convex effect */
+  .glass-button-primary {
+    @apply relative overflow-hidden px-6 py-3 rounded-xl font-medium transition-all duration-200;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 
+      0 4px 10px 0 rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    .glass-button-primary {
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.9);
+    }
+  }
+  
+  .glass-button-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+      0 6px 16px 0 rgba(0, 0, 0, 0.15),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+  }
+  
+  .glass-button-primary:active {
+    transform: translateY(0);
+    box-shadow: 
+      0 2px 8px 0 rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.3);
+  }
+  
+  /* Blob animation for background */
+  @keyframes blob {
+    0% {
+      transform: translate(0px, 0px) scale(1);
+    }
+    33% {
+      transform: translate(30px, -50px) scale(1.1);
+    }
+    66% {
+      transform: translate(-20px, 20px) scale(0.9);
+    }
+    100% {
+      transform: translate(0px, 0px) scale(1);
+    }
+  }
+  
+  .animate-blob {
+    animation: blob 7s infinite;
+  }
+  
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+  
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+  
+  /* Text readability on glass */
+  .glass-text {
+    @apply font-medium;
+    text-shadow: 0 0.5px 1px rgba(0, 0, 0, 0.05);
+    color: rgba(0, 0, 0, 0.8);
+  }
+  
+  /* Dark mode glass text */
+  @media (prefers-color-scheme: dark) {
+    .glass-text {
+      color: rgba(255, 255, 255, 0.85);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+  }
+  
+  /* Legacy styles for compatibility */
   .ai-gradient-text {
-    @apply bg-gradient-to-r from-ai-primary via-ai-secondary to-ai-accent bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent font-bold;
+  }
+  
+  /* Select element styling for glass theme */
+  select.glass-card {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 28px;
+    cursor: pointer;
   }
   
   .ai-button {
-    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 
-           bg-gradient-to-r from-ai-primary to-ai-secondary 
-           hover:shadow-lg hover:scale-105 text-white;
+    @apply glass-button-primary;
   }
   
   .ai-card {
-    @apply bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 
-           border border-gray-200 dark:border-gray-700;
+    @apply glass-card;
   }
 }
