@@ -1,6 +1,7 @@
 import { create } from "zustand"
 import type { Category, CategoryMapping } from "../types/category"
 import { DEFAULT_CATEGORIES } from "../types/category"
+import { ErrorBoundary, DataValidator } from "../utils/errorBoundary"
 
 interface CategoryStore {
   categories: Category[]
@@ -60,17 +61,45 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
   },
 
   addCategory: async (categoryData) => {
-    const newCategory: Category = {
-      ...categoryData,
-      id: `custom-${Date.now()}`,
-      createdAt: Date.now()
-    }
-    
-    const updatedCategories = [...get().categories, newCategory]
-    await chrome.storage.sync.set({ categories: updatedCategories })
-    set({ categories: updatedCategories })
-    
-    return newCategory.id
+    return ErrorBoundary.wrap(
+      async () => {
+        // Validate category data
+        const validatedData = {
+          ...categoryData,
+          name: DataValidator.sanitizeString(categoryData.name, 50),
+          domains: categoryData.domains.map(d => d.toLowerCase().replace(/^www\./, '')),
+          keywords: categoryData.keywords.map(k => k.toLowerCase()),
+          color: categoryData.color as chrome.tabGroups.ColorEnum
+        }
+        
+        const newCategory: Category = {
+          ...validatedData,
+          id: `custom-${Date.now()}`,
+          createdAt: Date.now()
+        }
+        
+        // Check for duplicate names
+        const categories = get().categories
+        if (categories.some(c => c.name.toLowerCase() === newCategory.name.toLowerCase())) {
+          throw new Error('Category with this name already exists')
+        }
+        
+        const updatedCategories = [...categories, newCategory]
+        
+        // Check storage quota before saving
+        const { quota, usage } = await chrome.storage.sync.getBytesInUse(null)
+        if (usage > quota * 0.9) {
+          throw new Error('Storage quota exceeded')
+        }
+        
+        await chrome.storage.sync.set({ categories: updatedCategories })
+        set({ categories: updatedCategories })
+        
+        return newCategory.id
+      },
+      '',
+      'categoryStore.addCategory'
+    )
   },
 
   updateCategory: async (id, updates) => {
@@ -115,34 +144,72 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
   },
 
   assignDomainToCategory: async (domain, categoryId) => {
-    const mapping = { ...get().categoryMapping, [domain]: categoryId }
-    await chrome.storage.sync.set({ categoryMapping: mapping })
-    set({ categoryMapping: mapping })
+    return ErrorBoundary.wrap(
+      async () => {
+        // Validate inputs
+        const normalizedDomain = domain.toLowerCase().replace(/^www\./, '')
+        if (!normalizedDomain || normalizedDomain.length > 255) {
+          throw new Error('Invalid domain')
+        }
+        
+        const categories = get().categories
+        if (!categories.some(c => c.id === categoryId)) {
+          throw new Error('Invalid category ID')
+        }
+        
+        const mapping = { ...get().categoryMapping, [normalizedDomain]: categoryId }
+        await chrome.storage.sync.set({ categoryMapping: mapping })
+        set({ categoryMapping: mapping })
+      },
+      undefined,
+      'categoryStore.assignDomainToCategory'
+    )
   },
 
   getCategoryForDomain: (domain) => {
-    const { categories, categoryMapping } = get()
-    
-    // Check explicit mapping first
-    if (categoryMapping[domain]) {
-      return categoryMapping[domain]
-    }
-    
-    // Check category domains
-    for (const category of categories) {
-      if (category.domains.some(d => domain.includes(d))) {
-        return category.id
-      }
-    }
-    
-    // Check keywords in domain
-    for (const category of categories) {
-      if (category.keywords.some(keyword => domain.includes(keyword))) {
-        return category.id
-      }
-    }
-    
-    return "other"
+    return ErrorBoundary.wrapSync(
+      () => {
+        const { categories, categoryMapping } = get()
+        const normalizedDomain = domain.toLowerCase().replace(/^www\./, '')
+        
+        // Check explicit mapping first
+        if (categoryMapping[normalizedDomain]) {
+          return categoryMapping[normalizedDomain]
+        }
+        
+        // Check category domains with better pattern matching
+        for (const category of categories) {
+          // Exact domain match
+          if (category.domains.some(d => normalizedDomain === d.toLowerCase())) {
+            return category.id
+          }
+          
+          // Subdomain match (e.g., docs.github.com matches github.com)
+          if (category.domains.some(d => {
+            const pattern = d.toLowerCase()
+            return normalizedDomain.endsWith(`.${pattern}`) || normalizedDomain === pattern
+          })) {
+            return category.id
+          }
+        }
+        
+        // Check keywords in domain with word boundaries
+        for (const category of categories) {
+          if (category.keywords.some(keyword => {
+            const keywordLower = keyword.toLowerCase()
+            // Match whole words only
+            const regex = new RegExp(`\\b${keywordLower}\\b`)
+            return regex.test(normalizedDomain)
+          })) {
+            return category.id
+          }
+        }
+        
+        return "other"
+      },
+      "other",
+      'categoryStore.getCategoryForDomain'
+    )
   },
 
   resetToDefaults: async () => {
