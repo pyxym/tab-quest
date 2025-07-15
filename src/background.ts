@@ -82,7 +82,7 @@ async function getCategoryForDomain(domain: string): Promise<string> {
   const categories: Category[] = result.categories || DEFAULT_CATEGORIES
   const categoryMapping: CategoryMapping = result.categoryMapping || {}
   
-  // Check explicit mapping first
+  // Check explicit mapping first - this takes precedence over everything
   if (categoryMapping[domain]) {
     return categoryMapping[domain]
   }
@@ -115,6 +115,13 @@ async function updateTabAccessTime(tab: chrome.tabs.Tab) {
     tabsData[tab.id].lastAccessed = Date.now()
     await chrome.storage.local.set({ tabsData })
   }
+}
+
+// Check if a domain has been explicitly assigned by user
+async function isUserAssignedCategory(domain: string): Promise<boolean> {
+  const result = await chrome.storage.sync.get(["categoryMapping"])
+  const categoryMapping = result.categoryMapping || {}
+  return domain in categoryMapping
 }
 
 // Handle messages from popup
@@ -207,6 +214,9 @@ async function getTabsAnalysis() {
 
 // Smart organize tabs into groups with advanced features
 async function smartOrganizeTabs() {
+  // Small delay to ensure storage sync is complete
+  await new Promise(resolve => setTimeout(resolve, 100))
+  
   const tabs = await chrome.tabs.query({ currentWindow: true })
   const result = await chrome.storage.local.get("tabsData")
   const tabsData = result.tabsData || {}
@@ -239,6 +249,27 @@ async function smartOrganizeTabs() {
   // Step 2: Re-query tabs after closing duplicates
   const remainingTabs = await chrome.tabs.query({ currentWindow: true })
   
+  // Step 2.5: Ungroup all existing tabs first to ensure clean grouping
+  const existingGroupIds = new Set<number>()
+  for (const tab of remainingTabs) {
+    if (tab.groupId && tab.groupId !== chrome.tabGroups.TAB_GROUP_ID_NONE) {
+      existingGroupIds.add(tab.groupId)
+    }
+  }
+  
+  // Ungroup all tabs from existing groups
+  for (const groupId of existingGroupIds) {
+    try {
+      const tabsInGroup = await chrome.tabs.query({ groupId })
+      const tabIds = tabsInGroup.map(t => t.id).filter(id => id !== undefined) as number[]
+      if (tabIds.length > 0) {
+        await chrome.tabs.ungroup(tabIds)
+      }
+    } catch (error) {
+      console.error(`Failed to ungroup tabs from group ${groupId}:`, error)
+    }
+  }
+  
   // Step 3: Analyze tabs and group by smart criteria
   const groups = {} as Record<string, number[]>
   const projectGroups = {} as Record<string, number[]>
@@ -250,8 +281,12 @@ async function smartOrganizeTabs() {
       const url = new URL(tab.url)
       const domain = url.hostname
       
-      // Special handling for development/project tabs
-      if (domain === "github.com" || domain === "gitlab.com") {
+      // Check if user has explicitly assigned a category to this domain
+      const userAssignedCategory = await getCategoryForDomain(domain)
+      const isUserAssigned = await isUserAssignedCategory(domain)
+      
+      // Special handling for development/project tabs ONLY if not user-assigned
+      if (!isUserAssigned && (domain === "github.com" || domain === "gitlab.com")) {
         // Extract project name from URL
         const pathParts = url.pathname.split('/')
         if (pathParts.length >= 3) {
@@ -264,13 +299,15 @@ async function smartOrganizeTabs() {
         }
       }
       
-      // Regular category grouping
-      let category = "other"
-      if (tabsData[tab.id]) {
-        category = tabsData[tab.id].category || "other"
-      } else {
-        category = await getCategoryForDomain(domain)
+      // Regular category grouping - always use the latest category mapping
+      const category = await getCategoryForDomain(domain)
+      
+      // Update tabsData with the latest category
+      if (!tabsData[tab.id]) {
         await analyzeAndCategorizeTab(tab)
+      } else if (tabsData[tab.id].category !== category) {
+        tabsData[tab.id].category = category
+        await chrome.storage.local.set({ tabsData })
       }
       
       if (!groups[category]) {
@@ -289,7 +326,7 @@ async function smartOrganizeTabs() {
   const categoryMap = new Map(categories.map(c => [c.id, c]))
   
   for (const [categoryId, tabIds] of Object.entries(groups)) {
-    if (tabIds.length > 1) {
+    if (tabIds.length >= 1) {  // Create group even for single tabs
       const groupId = await chrome.tabs.group({ tabIds })
       groupsCreated++
       

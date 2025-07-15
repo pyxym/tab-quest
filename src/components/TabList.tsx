@@ -144,7 +144,7 @@ export const TabList: React.FC<TabListProps> = ({ onClose }) => {
 
         <div className="px-4 py-4 border-t border-white/20">
           <p className="text-xs glass-text opacity-80">
-            💡 Tip: When you change a tab's category, all tabs from the same domain will be grouped together
+            💡 Tip: Categories are assigned by domain. When you change a tab's category, all tabs from the same domain (e.g., all github.com tabs) will use the same category.
           </p>
         </div>
       </div>
