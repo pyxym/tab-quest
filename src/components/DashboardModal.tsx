@@ -107,7 +107,7 @@ export const DashboardModal: React.FC<DashboardModalProps> = ({ onClose }) => {
               <h1 className="text-xl font-bold ai-gradient-text">
                 TabAI Dashboard
               </h1>
-              <p className="text-sm glass-text opacity-80 mt-1">
+              <p className="text-sm text-white/90 mt-1">
                 AI-powered insights for your browsing habits
               </p>
             </div>
@@ -125,7 +125,7 @@ export const DashboardModal: React.FC<DashboardModalProps> = ({ onClose }) => {
           {isLoading ? (
             <div className="text-center py-8">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-              <p className="mt-2 glass-text opacity-70">Loading dashboard data...</p>
+              <p className="mt-2 text-white/80">Loading dashboard data...</p>
             </div>
           ) : (
             <>
@@ -133,38 +133,38 @@ export const DashboardModal: React.FC<DashboardModalProps> = ({ onClose }) => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <div className="glass-card text-center">
                   <p className="text-2xl font-bold ai-gradient-text">{totalTabs}</p>
-                  <p className="text-xs glass-text opacity-70 mt-1">Total Tabs</p>
+                  <p className="text-xs text-white/80 mt-1">Total Tabs</p>
                 </div>
                 <div className="glass-card text-center">
                   <p className="text-2xl font-bold ai-gradient-text">{categoryStats.length}</p>
-                  <p className="text-xs glass-text opacity-70 mt-1">Categories</p>
+                  <p className="text-xs text-white/80 mt-1">Categories</p>
                 </div>
                 <div className="glass-card text-center">
                   <p className="text-2xl font-bold ai-gradient-text">{duplicates}</p>
-                  <p className="text-xs glass-text opacity-70 mt-1">Duplicates</p>
+                  <p className="text-xs text-white/80 mt-1">Duplicates</p>
                 </div>
                 <div className="glass-card text-center">
                   <ProductivityScore score={productivityScore} compact />
-                  <p className="text-xs glass-text opacity-70 mt-1">Productivity</p>
+                  <p className="text-xs text-white/80 mt-1">Productivity</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Category Distribution */}
                 <div className="glass-card">
-                  <h3 className="font-semibold mb-4 flex items-center gap-2 glass-text">
+                  <h3 className="font-semibold mb-4 flex items-center gap-2 text-white">
                     <span className="text-lg">📊</span> Category Distribution
                   </h3>
                   <div className="space-y-3">
                     {categoryStats.length > 0 ? categoryStats.map((stat) => (
                       <div key={stat.name}>
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-medium">{stat.name}</span>
-                          <span className="text-xs text-gray-600 dark:text-gray-400">
+                          <span className="text-sm font-medium text-white">{stat.name}</span>
+                          <span className="text-xs text-white/70">
                             {stat.count} ({stat.percentage}%)
                           </span>
                         </div>
-                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div className="w-full bg-white/20 rounded-full h-2">
                           <div
                             className="h-2 rounded-full transition-all duration-500"
                             style={{
@@ -175,41 +175,41 @@ export const DashboardModal: React.FC<DashboardModalProps> = ({ onClose }) => {
                         </div>
                       </div>
                     )) : (
-                      <p className="text-sm text-gray-500">No tab data available yet</p>
+                      <p className="text-sm text-white/60">No tab data available yet</p>
                     )}
                   </div>
                 </div>
 
                 {/* Most Visited */}
                 <div className="glass-card">
-                  <h3 className="font-semibold mb-4 flex items-center gap-2 glass-text">
+                  <h3 className="font-semibold mb-4 flex items-center gap-2 text-white">
                     <span className="text-lg">🔥</span> Most Visited Sites
                   </h3>
                   <div className="space-y-3">
                     {mostVisited.length > 0 ? mostVisited.map((tab, index) => (
                       <div key={tab.id} className="flex items-center gap-3">
-                        <span className="text-xl font-bold text-gray-300">#{index + 1}</span>
+                        <span className="text-xl font-bold text-white/90">#{index + 1}</span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{tab.title}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">{tab.domain}</p>
+                          <p className="text-sm font-medium truncate text-white">{tab.title}</p>
+                          <p className="text-xs text-white/70">{tab.domain}</p>
                         </div>
-                        <span className="text-sm font-medium text-purple-600 dark:text-purple-400">
+                        <span className="text-sm font-medium text-purple-400">
                           {tab.accessCount}x
                         </span>
                       </div>
                     )) : (
-                      <p className="text-sm text-gray-500">No visit data available yet</p>
+                      <p className="text-sm text-white/60">No visit data available yet</p>
                     )}
                   </div>
                 </div>
               </div>
 
               {/* Quick Tips */}
-              <div className="mt-6 p-4 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg">
-                <h3 className="font-semibold mb-2 flex items-center gap-2">
+              <div className="mt-6 p-4 glass-card bg-gradient-to-r from-purple-500/10 to-blue-500/10">
+                <h3 className="font-semibold mb-2 flex items-center gap-2 text-white">
                   <span className="text-lg">💡</span> AI Insights
                 </h3>
-                <ul className="text-sm space-y-1 text-gray-700 dark:text-gray-300">
+                <ul className="text-sm space-y-1 text-white/90">
                   {productivityScore < 50 ? (
                     <li>• You have more entertainment tabs than work tabs. Try closing some distracting tabs!</li>
                   ) : (

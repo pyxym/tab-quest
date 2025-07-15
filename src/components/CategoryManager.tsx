@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { useCategoryStore } from "../store/categoryStore"
+import { ColorPicker } from "./ColorPicker"
 import type { Category } from "../types/category"
 
 interface CategoryManagerProps {
@@ -17,10 +18,6 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ onClose }) => 
   useEffect(() => {
     loadCategories()
   }, [loadCategories])
-
-  const colors: chrome.tabGroups.ColorEnum[] = [
-    "blue", "cyan", "green", "yellow", "orange", "red", "pink", "purple", "grey"
-  ]
 
   const handleEdit = (category: Category) => {
     setEditingId(category.id)
@@ -59,7 +56,7 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ onClose }) => 
 
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
-      <div className="glass-main rounded-[24px] w-96 h-[90vh] max-h-[90vh] flex flex-col">
+      <div className="glass-main rounded-[24px] w-[480px] h-[90vh] max-h-[90vh] flex flex-col">
         <div className="px-4 py-4 border-b border-white/20">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold ai-gradient-text">
@@ -75,86 +72,86 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ onClose }) => 
         </div>
 
         <div className="flex-1 overflow-y-auto p-4">
-          <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
             {categories.map((category) => (
-              <div key={category.id} className="flex items-center gap-3 p-3 glass-card">
-                <div
-                  className={`w-4 h-4 rounded-full bg-${category.color}-500`}
-                  style={{ backgroundColor: getColorHex(category.color) }}
-                />
-                {editingId === category.id ? (
-                  <input
-                    type="text"
-                    value={editingName}
-                    onChange={(e) => setEditingName(e.target.value)}
-                    onBlur={handleSaveEdit}
-                    onKeyDown={(e) => e.key === "Enter" && handleSaveEdit()}
-                    className="flex-1 px-2 py-1 text-sm glass-card !p-2 border-none outline-none"
-                    autoFocus
+              <div key={category.id} className="glass-card flex items-center p-2.5 min-h-[50px]">
+                <div className="flex items-center gap-3 flex-1">
+                  <div
+                    className={`w-4 h-4 rounded-full bg-${category.color}-500 flex-shrink-0`}
+                    style={{ backgroundColor: getColorHex(category.color) }}
                   />
-                ) : (
-                  <span className="flex-1 text-sm glass-text">{category.name}</span>
-                )}
-                <div className="flex gap-2">
-                  {!category.isDefault && (
-                    <>
-                      <button
-                        onClick={() => handleEdit(category)}
-                        className="text-xs glass-text hover:opacity-70"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(category.id)}
-                        className="text-xs text-red-500 hover:text-red-600"
-                      >
-                        Delete
-                      </button>
-                    </>
+                  {editingId === category.id ? (
+                    <input
+                      type="text"
+                      value={editingName}
+                      onChange={(e) => setEditingName(e.target.value)}
+                      onBlur={handleSaveEdit}
+                      onKeyDown={(e) => e.key === "Enter" && handleSaveEdit()}
+                      className="flex-1 px-2 py-1 text-sm glass-card !p-2 border-none outline-none text-white placeholder-gray-300"
+                      autoFocus
+                    />
+                  ) : (
+                    <span className="flex-1 text-sm font-medium glass-text whitespace-nowrap">{category.name}</span>
                   )}
                 </div>
+                {!category.isDefault && (
+                  <div className="flex gap-1 ml-2">
+                    <button
+                      onClick={() => handleEdit(category)}
+                      className="text-xs glass-text hover:opacity-70 p-1"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      onClick={() => handleDelete(category.id)}
+                      className="text-xs text-red-500 hover:text-red-600 p-1"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
 
             {isAdding ? (
-              <div className="flex items-center gap-3 p-3 glass-card border-purple-500/30">
-                <select
-                  value={newCategoryColor}
-                  onChange={(e) => setNewCategoryColor(e.target.value as chrome.tabGroups.ColorEnum)}
-                  className="px-2 py-1 text-sm glass-card !p-2 border-none outline-none"
-                >
-                  {colors.map(color => (
-                    <option key={color} value={color}>{color}</option>
-                  ))}
-                </select>
-                <input
-                  type="text"
-                  value={newCategoryName}
-                  onChange={(e) => setNewCategoryName(e.target.value)}
-                  placeholder="Category name"
-                  className="flex-1 px-2 py-1 text-sm glass-card !p-2 border-none outline-none"
-                  autoFocus
-                />
-                <button
-                  onClick={handleAddCategory}
-                  className="text-xs text-green-500 hover:text-green-600"
-                >
-                  Save
-                </button>
-                <button
-                  onClick={() => {
-                    setIsAdding(false)
-                    setNewCategoryName("")
-                  }}
-                  className="text-xs glass-text hover:opacity-70"
-                >
-                  Cancel
-                </button>
+              <div className="glass-card col-span-2 p-3">
+                <div className="flex flex-col gap-2">
+                  <input
+                    type="text"
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    placeholder="Category name"
+                    className="px-3 py-2 text-sm glass-card !p-2 border-none outline-none text-white placeholder-gray-300"
+                    autoFocus
+                  />
+                  <ColorPicker 
+                    value={newCategoryColor}
+                    onChange={setNewCategoryColor}
+                    className="!p-1.5"
+                  />
+                  <div className="flex gap-2 justify-end mt-1">
+                    <button
+                      onClick={handleAddCategory}
+                      className="text-sm glass-button-primary !py-1 !px-3"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsAdding(false)
+                        setNewCategoryName("")
+                      }}
+                      className="text-sm glass-text hover:opacity-70 px-3 py-1"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
               </div>
             ) : (
               <button
                 onClick={() => setIsAdding(true)}
-                className="w-full p-3 border-2 border-dashed border-white/30 rounded-lg text-sm glass-text hover:border-purple-500/50 hover:text-purple-600 transition-colors"
+                className="glass-card col-span-2 p-2.5 border-2 border-dashed border-white/30 text-sm glass-text hover:border-purple-500/50 hover:text-purple-600 transition-colors flex items-center justify-center min-h-[50px]"
               >
                 + Add New Category
               </button>

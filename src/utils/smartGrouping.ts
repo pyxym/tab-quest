@@ -35,6 +35,22 @@ export function detectSmartGroups(tabs: chrome.tabs.Tab[]): SmartGroup[] {
   const researchGroups = detectResearchContext(tabs, processedTabs)
   smartGroups.push(...researchGroups)
   
+  // 5. Project Context (GitHub/GitLab repos)
+  const projectGroups = detectProjectContext(tabs, processedTabs)
+  smartGroups.push(...projectGroups)
+  
+  // 6. Communication Context (Email, Messages)
+  const commGroups = detectCommunicationContext(tabs, processedTabs)
+  smartGroups.push(...commGroups)
+  
+  // 7. Media Context (Videos, Music)
+  const mediaGroups = detectMediaContext(tabs, processedTabs)
+  smartGroups.push(...mediaGroups)
+  
+  // 8. Task Management Context
+  const taskGroups = detectTaskContext(tabs, processedTabs)
+  smartGroups.push(...taskGroups)
+  
   return smartGroups.filter(group => group.tabIds.length > 1)
 }
 
@@ -285,4 +301,134 @@ function extractResearchTopic(title: string): string | null {
     return keywords.slice(0, 2).join(' ')
   }
   return null
+}
+
+// Detect project context (GitHub/GitLab repositories)
+function detectProjectContext(tabs: chrome.tabs.Tab[], processed: Set<number>): SmartGroup[] {
+  const groups: SmartGroup[] = []
+  const projectPatterns = [
+    /github\.com\/([^\/]+)\/([^\/]+)/,
+    /gitlab\.com\/([^\/]+)\/([^\/]+)/,
+    /bitbucket\.org\/([^\/]+)\/([^\/]+)/
+  ]
+  
+  const projectTabs = new Map<string, number[]>()
+  
+  tabs.forEach(tab => {
+    if (!tab.url || !tab.id || processed.has(tab.id)) return
+    
+    for (const pattern of projectPatterns) {
+      const match = tab.url.match(pattern)
+      if (match) {
+        const projectKey = `${match[1]}/${match[2]}`
+        if (!projectTabs.has(projectKey)) {
+          projectTabs.set(projectKey, [])
+        }
+        projectTabs.get(projectKey)!.push(tab.id)
+        processed.add(tab.id)
+        break
+      }
+    }
+  })
+  
+  projectTabs.forEach((tabIds, project) => {
+    if (tabIds.length > 1) {
+      groups.push({
+        name: `💻 Project: ${project}`,
+        icon: '💻',
+        tabIds,
+        confidence: 0.95
+      })
+    }
+  })
+  
+  return groups
+}
+
+// Detect communication context
+function detectCommunicationContext(tabs: chrome.tabs.Tab[], processed: Set<number>): SmartGroup[] {
+  const groups: SmartGroup[] = []
+  const commDomains = ['gmail.com', 'mail.google.com', 'outlook.com', 'mail.yahoo.com', 'slack.com', 'discord.com', 'telegram.org']
+  
+  const commTabs = tabs.filter(tab => {
+    if (!tab.url || !tab.id || processed.has(tab.id)) return false
+    return commDomains.some(domain => tab.url.includes(domain))
+  })
+  
+  if (commTabs.length > 1) {
+    groups.push({
+      name: '💬 Communications',
+      icon: '💬',
+      tabIds: commTabs.map(tab => tab.id!),
+      confidence: 0.8
+    })
+    commTabs.forEach(tab => processed.add(tab.id!))
+  }
+  
+  return groups
+}
+
+// Detect media context
+function detectMediaContext(tabs: chrome.tabs.Tab[], processed: Set<number>): SmartGroup[] {
+  const groups: SmartGroup[] = []
+  const mediaDomains = ['youtube.com', 'netflix.com', 'spotify.com', 'soundcloud.com', 'twitch.tv', 'vimeo.com']
+  
+  const mediaTabs = tabs.filter(tab => {
+    if (!tab.url || !tab.id || processed.has(tab.id)) return false
+    return mediaDomains.some(domain => tab.url.includes(domain))
+  })
+  
+  // Group by media type
+  const videoTabs = mediaTabs.filter(tab => 
+    tab.url!.includes('youtube.com') || tab.url!.includes('netflix.com') || tab.url!.includes('twitch.tv') || tab.url!.includes('vimeo.com')
+  )
+  
+  const audioTabs = mediaTabs.filter(tab => 
+    tab.url!.includes('spotify.com') || tab.url!.includes('soundcloud.com')
+  )
+  
+  if (videoTabs.length > 1) {
+    groups.push({
+      name: '🎬 Video Streaming',
+      icon: '🎬',
+      tabIds: videoTabs.map(tab => tab.id!),
+      confidence: 0.85
+    })
+    videoTabs.forEach(tab => processed.add(tab.id!))
+  }
+  
+  if (audioTabs.length > 1) {
+    groups.push({
+      name: '🎵 Music & Audio',
+      icon: '🎵',
+      tabIds: audioTabs.map(tab => tab.id!),
+      confidence: 0.85
+    })
+    audioTabs.forEach(tab => processed.add(tab.id!))
+  }
+  
+  return groups
+}
+
+// Detect task management context
+function detectTaskContext(tabs: chrome.tabs.Tab[], processed: Set<number>): SmartGroup[] {
+  const groups: SmartGroup[] = []
+  const taskDomains = ['trello.com', 'asana.com', 'todoist.com', 'notion.so', 'monday.com', 'clickup.com', 'jira.atlassian.com']
+  
+  const taskTabs = tabs.filter(tab => {
+    if (!tab.url || !tab.id || processed.has(tab.id)) return false
+    return taskDomains.some(domain => tab.url.includes(domain))
+  })
+  
+  if (taskTabs.length > 1) {
+    groups.push({
+      name: '📋 Task Management',
+      icon: '📋',
+      tabIds: taskTabs.map(tab => tab.id!),
+      confidence: 0.85
+    })
+    taskTabs.forEach(tab => processed.add(tab.id!))
+  }
+  
+  return groups
 }

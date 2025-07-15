@@ -24,13 +24,35 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
     const result = await chrome.storage.sync.get(["categories", "categoryMapping"])
     
     if (result.categories) {
+      // Merge default categories with saved ones
+      const savedCategories = result.categories as Category[]
+      const savedIds = new Set(savedCategories.map(c => c.id))
+      
+      // Add any new default categories that don't exist
+      const newDefaultCategories = DEFAULT_CATEGORIES.filter(
+        defaultCat => !savedIds.has(defaultCat.id)
+      )
+      
+      // Keep custom categories and update default ones
+      const mergedCategories = [
+        ...DEFAULT_CATEGORIES, // Use latest default categories
+        ...savedCategories.filter(c => !c.isDefault) // Keep only custom categories
+      ]
+      
       set({ 
-        categories: result.categories,
+        categories: mergedCategories,
         categoryMapping: result.categoryMapping || {}
       })
+      
+      // Update storage with merged categories
+      await chrome.storage.sync.set({ categories: mergedCategories })
     } else {
       // First time setup
       await chrome.storage.sync.set({ 
+        categories: DEFAULT_CATEGORIES,
+        categoryMapping: {}
+      })
+      set({ 
         categories: DEFAULT_CATEGORIES,
         categoryMapping: {}
       })
