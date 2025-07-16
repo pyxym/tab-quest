@@ -106,10 +106,18 @@ async function testTabGrouping() {
 // Export for use in background.ts
 (globalThis as any).testTabGrouping = testTabGrouping
 
+// Import the improved smart organize function
+import { smartOrganizeTabsImproved } from './background-improved'
+
 // Add message listener for testing
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'testGrouping') {
     testTabGrouping().then(sendResponse)
+    return true
+  }
+  
+  if (request.action === 'testImprovedGrouping') {
+    smartOrganizeTabsImproved().then(sendResponse)
     return true
   }
 })

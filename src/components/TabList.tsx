@@ -31,10 +31,10 @@ export const TabList: React.FC<TabListProps> = ({ onClose }) => {
           const category = getCategoryForDomain(domain)
           return { ...tab, category }
         } catch {
-          return { ...tab, category: "other" }
+          return { ...tab, category: "uncategorized" }
         }
       }
-      return { ...tab, category: "other" }
+      return { ...tab, category: "uncategorized" }
     })
     setTabs(tabsWithCategories)
   }
@@ -52,6 +52,21 @@ export const TabList: React.FC<TabListProps> = ({ onClose }) => {
         tab.id === tabId ? { ...tab, category: newCategoryId } : tab
       ))
       
+      // Teach AI about this user preference
+      try {
+        await chrome.runtime.sendMessage({
+          action: 'learnReassignment',
+          tabId: tabId,
+          category: newCategoryId
+        })
+        console.log('[TabAI] AI learned from reassignment')
+      } catch (error) {
+        console.error('[TabAI] Failed to update AI learning:', error)
+      }
+      
+      // Auto-organize tabs after category change
+      await organizeTabsByCategory()
+      
       // Show success feedback
       setSelectedTab(tabId)
       setTimeout(() => setSelectedTab(null), 1500)
@@ -61,6 +76,74 @@ export const TabList: React.FC<TabListProps> = ({ onClose }) => {
       setIsUpdating(false)
     }
   }
+  
+  const organizeTabsByCategory = async () => {
+    try {
+      console.log('[TabAI] Organizing tabs by category...')
+      
+      // Get current tabs with their categories
+      const currentTabs = await chrome.tabs.query({ currentWindow: true })
+      const categoryGroups = new Map<string, number[]>()
+      
+      // Group tabs by category
+      for (const tab of currentTabs) {
+        if (!tab.id || !tab.url) continue
+        
+        // Skip special URLs
+        if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
+          continue
+        }
+        
+        try {
+          const domain = new URL(tab.url).hostname
+          const category = getCategoryForDomain(domain)
+          
+          if (!categoryGroups.has(category)) {
+            categoryGroups.set(category, [])
+          }
+          categoryGroups.get(category)!.push(tab.id)
+        } catch (error) {
+          console.error('Error processing tab:', error)
+        }
+      }
+      
+      // First, ungroup all tabs
+      const allTabIds = currentTabs.map(t => t.id).filter(id => id !== undefined) as number[]
+      if (allTabIds.length > 0) {
+        try {
+          await chrome.tabs.ungroup(allTabIds)
+        } catch (e) {
+          console.log('Some tabs were already ungrouped')
+        }
+      }
+      
+      // Create groups for each category in the correct order
+      // Sort by category order from the store
+      for (const category of categories) {
+        const tabIds = categoryGroups.get(category.id)
+        if (!tabIds || tabIds.length === 0) continue
+        
+        try {
+          const groupId = await chrome.tabs.group({ tabIds })
+          await chrome.tabGroups.update(groupId, {
+            title: category.name,
+            color: category.color as chrome.tabGroups.ColorEnum,
+            collapsed: false
+          })
+          console.log(`[TabAI] Created group "${category.name}" with ${tabIds.length} tabs`)
+          
+          // Move the group to maintain order
+          await chrome.tabGroups.move(groupId, { index: -1 })
+        } catch (error) {
+          console.error(`Failed to create group for ${category.id}:`, error)
+        }
+      }
+      
+      console.log('[TabAI] Tab organization complete')
+    } catch (error) {
+      console.error('[TabAI] Failed to organize tabs:', error)
+    }
+  }
 
   const getCategoryColor = (categoryId: string): string => {
     const category = categories.find(c => c.id === categoryId)
@@ -68,19 +151,28 @@ export const TabList: React.FC<TabListProps> = ({ onClose }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-[9999] p-4">
       <div className="glass-main rounded-[24px] w-full max-w-2xl h-[90vh] max-h-[90vh] flex flex-col">
         <div className="px-4 py-4 border-b border-white/20">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold ai-gradient-text">
               Assign Tabs to Categories
             </h2>
-            <button
-              onClick={onClose}
-              className="glass-button-primary !p-2 !px-3"
-            >
-              ✕
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={organizeTabsByCategory}
+                className="glass-button-primary !py-2 !px-4 text-sm"
+                disabled={isUpdating}
+              >
+                {isUpdating ? '⏳ Organizing...' : '🔄 Apply Grouping'}
+              </button>
+              <button
+                onClick={onClose}
+                className="glass-button-primary !p-2 !px-3"
+              >
+                ✕
+              </button>
+            </div>
           </div>
         </div>
 

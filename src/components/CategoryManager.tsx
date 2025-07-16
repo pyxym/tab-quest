@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { useCategoryStore } from "../store/categoryStore"
-import { ColorPicker } from "./ColorPicker"
+import { InfoTooltip } from "./InfoTooltip"
+import { CategoryEditModal } from "./CategoryEditModal"
 import type { Category } from "../types/category"
 
 interface CategoryManagerProps {
@@ -8,60 +9,126 @@ interface CategoryManagerProps {
 }
 
 export const CategoryManager: React.FC<CategoryManagerProps> = ({ onClose }) => {
-  const { categories, loadCategories, addCategory, updateCategory, deleteCategory } = useCategoryStore()
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editingName, setEditingName] = useState("")
-  const [isAdding, setIsAdding] = useState(false)
-  const [newCategoryName, setNewCategoryName] = useState("")
-  const [newCategoryColor, setNewCategoryColor] = useState<chrome.tabGroups.ColorEnum>("blue")
+  const { categories, loadCategories, addCategory, updateCategory, deleteCategory, reorderCategories } = useCategoryStore()
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null)
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
 
   useEffect(() => {
     loadCategories()
   }, [loadCategories])
 
   const handleEdit = (category: Category) => {
-    setEditingId(category.id)
-    setEditingName(category.name)
-  }
-
-  const handleSaveEdit = async () => {
-    if (editingId && editingName.trim()) {
-      await updateCategory(editingId, { name: editingName.trim() })
-      setEditingId(null)
-      setEditingName("")
+    // Don't allow editing system categories
+    if (category.isSystem) {
+      alert("미분류 카테고리는 수정할 수 없습니다.")
+      return
     }
+    setEditingCategory(category)
+    setIsModalOpen(true)
   }
 
-  const handleDelete = async (id: string) => {
-    try {
-      await deleteCategory(id)
-    } catch (error) {
-      console.error("Cannot delete default category")
-    }
+  const handleAdd = () => {
+    setEditingCategory(null)
+    setIsModalOpen(true)
   }
 
-  const handleAddCategory = async () => {
-    if (newCategoryName.trim()) {
+  const handleSave = async (name: string, color: chrome.tabGroups.ColorEnum) => {
+    if (editingCategory) {
+      // Update existing category
+      await updateCategory(editingCategory.id, { name, color })
+    } else {
+      // Add new category
       await addCategory({
-        name: newCategoryName.trim(),
-        color: newCategoryColor,
+        name,
+        color,
         domains: [],
         keywords: [],
         isDefault: false
       })
-      setNewCategoryName("")
-      setIsAdding(false)
+    }
+    setIsModalOpen(false)
+    setEditingCategory(null)
+  }
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    // Don't allow dragging system categories
+    if (categories[index].isSystem) {
+      e.preventDefault()
+      return
+    }
+    setDraggedIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDragOverIndex(index)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+  }
+
+  const handleDrop = async (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault()
+    if (draggedIndex === null || draggedIndex === dropIndex) return
+
+    // Don't allow dropping on system category position
+    if (categories[dropIndex].isSystem) {
+      setDraggedIndex(null)
+      setDragOverIndex(null)
+      return
+    }
+
+    const newCategories = [...categories]
+    const [draggedItem] = newCategories.splice(draggedIndex, 1)
+    newCategories.splice(dropIndex, 0, draggedItem)
+    
+    await reorderCategories(newCategories)
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+  }
+
+  const handleDelete = async (id: string) => {
+    const category = categories.find(c => c.id === id)
+    if (category?.isSystem) {
+      alert("미분류 카테고리는 삭제할 수 없습니다.")
+      return
+    }
+    if (confirm("이 카테고리를 삭제하시겠습니까?")) {
+      try {
+        await deleteCategory(id)
+      } catch (error) {
+        alert("기본 카테고리는 삭제할 수 없습니다.")
+      }
     }
   }
 
   return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-[9999] p-4">
       <div className="glass-main rounded-[24px] w-[480px] h-[90vh] max-h-[90vh] flex flex-col">
         <div className="px-4 py-4 border-b border-white/20">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold ai-gradient-text">
-              Manage Categories
-            </h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold ai-gradient-text">
+                Manage Categories
+              </h2>
+              <InfoTooltip 
+                title="카테고리 관리"
+                description="탭을 효율적으로 정리하기 위한 카테고리를 관리합니다."
+                features={[
+                  "카테고리 이름과 색상 편집",
+                  "드래그 앤 드롭으로 순서 변경",
+                  "카테고리 순서대로 탭 그룹 정렬",
+                  "미분류는 항상 마지막에 위치"
+                ]}
+                position="bottom"
+              />
+            </div>
             <button
               onClick={onClose}
               className="glass-button-primary !p-2 !px-3"
@@ -73,92 +140,93 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ onClose }) => 
 
         <div className="flex-1 overflow-y-auto p-4">
           <div className="grid grid-cols-2 gap-3">
-            {categories.map((category) => (
-              <div key={category.id} className="glass-card flex items-center p-2.5 min-h-[50px]">
-                <div className="flex items-center gap-3 flex-1">
+            {categories.map((category, index) => (
+              <div 
+                key={category.id} 
+                className={`glass-card flex items-center p-2.5 min-h-[50px] transition-all ${
+                  category.isSystem ? 'opacity-60 cursor-not-allowed' : 'cursor-move'
+                } ${
+                  dragOverIndex === index && !category.isSystem ? 'scale-105 border-2 border-purple-500' : ''
+                } ${draggedIndex === index ? 'opacity-50' : ''}`}
+                draggable={!category.isSystem}
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDragEnd={handleDragEnd}
+                onDrop={(e) => handleDrop(e, index)}
+              >
+                <div className="flex items-center gap-2 flex-1">
+                  {!category.isSystem ? (
+                    <div className="cursor-move flex items-center gap-1">
+                      <span className="text-xs glass-text opacity-50 font-mono">{index + 1}</span>
+                      <svg className="w-4 h-4 glass-text opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+                      </svg>
+                    </div>
+                  ) : (
+                    <span className="text-xs glass-text opacity-50 font-mono ml-1">{index + 1}</span>
+                  )}
                   <div
-                    className={`w-4 h-4 rounded-full bg-${category.color}-500 flex-shrink-0`}
+                    className="w-4 h-4 rounded-full flex-shrink-0"
                     style={{ backgroundColor: getColorHex(category.color) }}
                   />
-                  {editingId === category.id ? (
-                    <input
-                      type="text"
-                      value={editingName}
-                      onChange={(e) => setEditingName(e.target.value)}
-                      onBlur={handleSaveEdit}
-                      onKeyDown={(e) => e.key === "Enter" && handleSaveEdit()}
-                      className="flex-1 px-2 py-1 text-sm glass-card !p-2 border-none outline-none text-white placeholder-gray-300"
-                      autoFocus
-                    />
-                  ) : (
-                    <span className="flex-1 text-sm font-medium glass-text whitespace-nowrap">{category.name}</span>
-                  )}
+                  <span className="flex-1 text-sm font-medium glass-text whitespace-nowrap">
+                    {category.name}
+                    {category.isSystem && (
+                      <span className="ml-1 text-xs opacity-60">(시스템)</span>
+                    )}
+                  </span>
                 </div>
-                {!category.isDefault && (
-                  <div className="flex gap-1 ml-2">
+                <div className="flex gap-1 ml-2">
+                  {!category.isSystem && (
                     <button
                       onClick={() => handleEdit(category)}
                       className="text-xs glass-text hover:opacity-70 p-1"
+                      title="Edit"
                     >
                       ✏️
                     </button>
+                  )}
+                  {!category.isDefault && !category.isSystem && (
                     <button
                       onClick={() => handleDelete(category.id)}
                       className="text-xs text-red-500 hover:text-red-600 p-1"
+                      title="Delete"
                     >
                       🗑️
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             ))}
 
-            {isAdding ? (
-              <div className="glass-card col-span-2 p-3">
-                <div className="flex flex-col gap-2">
-                  <input
-                    type="text"
-                    value={newCategoryName}
-                    onChange={(e) => setNewCategoryName(e.target.value)}
-                    placeholder="Category name"
-                    className="px-3 py-2 text-sm glass-card !p-2 border-none outline-none text-white placeholder-gray-300"
-                    autoFocus
-                  />
-                  <ColorPicker 
-                    value={newCategoryColor}
-                    onChange={setNewCategoryColor}
-                    className="!p-1.5"
-                  />
-                  <div className="flex gap-2 justify-end mt-1">
-                    <button
-                      onClick={handleAddCategory}
-                      className="text-sm glass-button-primary !py-1 !px-3"
-                    >
-                      Save
-                    </button>
-                    <button
-                      onClick={() => {
-                        setIsAdding(false)
-                        setNewCategoryName("")
-                      }}
-                      className="text-sm glass-text hover:opacity-70 px-3 py-1"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <button
-                onClick={() => setIsAdding(true)}
-                className="glass-card col-span-2 p-2.5 border-2 border-dashed border-white/30 text-sm glass-text hover:border-purple-500/50 hover:text-purple-600 transition-colors flex items-center justify-center min-h-[50px]"
-              >
-                + Add New Category
-              </button>
-            )}
+            <button
+              onClick={handleAdd}
+              className="glass-card col-span-2 p-2.5 border-2 border-dashed border-white/30 text-sm glass-text hover:border-purple-500/50 hover:text-purple-600 transition-colors flex items-center justify-center min-h-[50px]"
+            >
+              + Add New Category
+            </button>
+          </div>
+        </div>
+        
+        <div className="px-4 py-3 border-t border-white/20">
+          <div className="text-xs glass-text opacity-60 space-y-1">
+            <p>💡 Tip: 카테고리를 드래그하여 순서를 변경할 수 있습니다.</p>
+            <p>📝 Edit: 연필 아이콘을 클릭하여 이름과 색상을 편집하세요.</p>
+            <p>🔢 순서: 카테고리 순서대로 탭 그룹이 정렬됩니다.</p>
           </div>
         </div>
       </div>
+      
+      <CategoryEditModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false)
+          setEditingCategory(null)
+        }}
+        onSave={handleSave}
+        category={editingCategory}
+        title={editingCategory ? "Edit Category" : "Add New Category"}
+      />
     </div>
   )
 }

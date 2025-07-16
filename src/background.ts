@@ -4,6 +4,7 @@ import type { Category, CategoryMapping } from "./types/category"
 import { detectSmartGroups } from "./utils/smartGrouping"
 import { organizeTabs } from "./utils/tabOrganizer"
 import "./background-debug" // Import debug module
+import "./background-ai" // Import AI-powered organization module
 
 // Configuration for smart organize behavior
 interface SmartOrganizeConfig {

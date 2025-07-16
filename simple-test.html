@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TabAI Simple Test</title>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>TabAI 간단 테스트</h1>
+    
+    <p>이 페이지를 새 탭에서 열고 아래 버튼을 클릭하세요:</p>
+    
+    <button onclick="testGrouping()">탭 그룹화 테스트</button>
+    <button onclick="showTabs()">현재 탭 보기</button>
+    <button onclick="clearGroups()">그룹 제거</button>
+    
+    <div id="result"></div>
+    
+    <script>
+        function log(message, isError = false) {
+            const result = document.getElementById('result');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = isError ? 'error' : 'success';
+            result.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+        }
+        
+        async function testGrouping() {
+            log('탭 그룹화 시작...');
+            
+            try {
+                // 현재 창의 모든 탭 가져오기
+                const tabs = await chrome.tabs.query({ currentWindow: true });
+                log(`현재 탭 수: ${tabs.length}`);
+                
+                // 도메인별로 그룹화
+                const domains = new Map();
+                
+                tabs.forEach(tab => {
+                    if (tab.url && !tab.url.startsWith('chrome://')) {
+                        try {
+                            const url = new URL(tab.url);
+                            const domain = url.hostname.replace(/^www\./, '');
+                            
+                            if (!domains.has(domain)) {
+                                domains.set(domain, []);
+                            }
+                            domains.get(domain).push(tab.id);
+                        } catch (e) {
+                            console.error('URL 파싱 실패:', tab.url);
+                        }
+                    }
+                });
+                
+                log(`\n도메인별 탭 분포:`);
+                domains.forEach((tabIds, domain) => {
+                    log(`- ${domain}: ${tabIds.length}개`);
+                });
+                
+                // 먼저 모든 탭의 그룹 해제
+                const allTabIds = tabs.map(t => t.id).filter(id => id !== undefined);
+                try {
+                    await chrome.tabs.ungroup(allTabIds);
+                    log('\n기존 그룹 해제 완료');
+                } catch (e) {
+                    log('일부 탭은 이미 그룹 해제 상태');
+                }
+                
+                // 그룹 생성
+                let groupsCreated = 0;
+                const colors = ['blue', 'red', 'yellow', 'green', 'pink', 'purple', 'cyan', 'orange'];
+                let colorIndex = 0;
+                
+                for (const [domain, tabIds] of domains) {
+                    if (tabIds.length >= 2) {
+                        try {
+                            const groupId = await chrome.tabs.group({ tabIds });
+                            await chrome.tabGroups.update(groupId, {
+                                title: domain,
+                                color: colors[colorIndex % colors.length],
+                                collapsed: false
+                            });
+                            groupsCreated++;
+                            colorIndex++;
+                            log(`✅ "${domain}" 그룹 생성 (${tabIds.length}개 탭)`);
+                        } catch (error) {
+                            log(`❌ "${domain}" 그룹 생성 실패: ${error.message}`, true);
+                        }
+                    }
+                }
+                
+                log(`\n완료! ${groupsCreated}개 그룹 생성됨`);
+                
+            } catch (error) {
+                log(`오류 발생: ${error.message}`, true);
+                console.error(error);
+            }
+        }
+        
+        async function showTabs() {
+            try {
+                const tabs = await chrome.tabs.query({ currentWindow: true });
+                const groups = await chrome.tabGroups.query({ windowId: chrome.windows.WINDOW_ID_CURRENT });
+                
+                log(`\n현재 탭 정보:`);
+                log(`- 전체 탭: ${tabs.length}개`);
+                log(`- 탭 그룹: ${groups.length}개`);
+                
+                log(`\n탭 목록:`);
+                tabs.forEach(tab => {
+                    const groupInfo = tab.groupId !== -1 ? ` [그룹 ${tab.groupId}]` : '';
+                    log(`- ${tab.title}${groupInfo}`);
+                });
+                
+            } catch (error) {
+                log(`오류: ${error.message}`, true);
+            }
+        }
+        
+        async function clearGroups() {
+            try {
+                const tabs = await chrome.tabs.query({ currentWindow: true });
+                const groupedTabs = tabs.filter(tab => tab.groupId !== -1);
+                
+                if (groupedTabs.length === 0) {
+                    log('그룹화된 탭이 없습니다.');
+                    return;
+                }
+                
+                const tabIds = groupedTabs.map(tab => tab.id);
+                await chrome.tabs.ungroup(tabIds);
+                
+                log(`✅ ${groupedTabs.length}개 탭의 그룹 해제 완료`);
+                
+            } catch (error) {
+                log(`오류: ${error.message}`, true);
+            }
+        }
+        
+        // 페이지 로드 시 현재 상태 표시
+        window.onload = () => {
+            log('TabAI 테스트 페이지 준비 완료');
+            showTabs();
+        };
+    </script>
+</body>
+</html>

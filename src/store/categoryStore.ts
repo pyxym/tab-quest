@@ -15,6 +15,7 @@ interface CategoryStore {
   assignDomainToCategory: (domain: string, categoryId: string) => Promise<void>
   getCategoryForDomain: (domain: string) => string
   resetToDefaults: () => Promise<void>
+  reorderCategories: (categories: Category[]) => Promise<void>
 }
 
 export const useCategoryStore = create<CategoryStore>((set, get) => ({
@@ -34,15 +35,54 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
         defaultCat => !savedIds.has(defaultCat.id)
       )
       
-      // Keep custom categories and update default ones
-      const mergedCategories = [
-        ...DEFAULT_CATEGORIES, // Use latest default categories
-        ...savedCategories.filter(c => !c.isDefault) // Keep only custom categories
-      ]
+      // Create a map to preserve user edits
+      const categoryMap = new Map<string, Category>()
+      
+      // First, add saved categories (including edited defaults)
+      // Skip 'other' category if it exists (migrating to 'uncategorized')
+      savedCategories.forEach(cat => {
+        if (cat.id !== 'other') {
+          categoryMap.set(cat.id, cat)
+        }
+      })
+      
+      // Then add any new default categories that don't exist
+      DEFAULT_CATEGORIES.forEach(defaultCat => {
+        if (!categoryMap.has(defaultCat.id)) {
+          categoryMap.set(defaultCat.id, defaultCat)
+        }
+      })
+      
+      // Migrate any 'other' mappings to 'uncategorized'
+      let updatedMapping = result.categoryMapping || {}
+      if (result.categoryMapping) {
+        let needsUpdate = false
+        Object.keys(updatedMapping).forEach(domain => {
+          if (updatedMapping[domain] === 'other') {
+            updatedMapping[domain] = 'uncategorized'
+            needsUpdate = true
+          }
+        })
+        if (needsUpdate) {
+          await chrome.storage.sync.set({ categoryMapping: updatedMapping })
+        }
+      }
+      
+      // Ensure uncategorized is always a system category
+      const uncategorized = categoryMap.get('uncategorized')
+      if (uncategorized) {
+        uncategorized.isSystem = true
+      }
+      
+      // Sort categories - uncategorized always at the end
+      const categoriesArray = Array.from(categoryMap.values())
+      const uncategorizedCat = categoriesArray.find(c => c.id === 'uncategorized')
+      const otherCategories = categoriesArray.filter(c => c.id !== 'uncategorized')
+      const mergedCategories = uncategorizedCat ? [...otherCategories, uncategorizedCat] : otherCategories
       
       set({ 
         categories: mergedCategories,
-        categoryMapping: result.categoryMapping || {}
+        categoryMapping: updatedMapping
       })
       
       // Update storage with merged categories
@@ -104,6 +144,13 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
 
   updateCategory: async (id, updates) => {
     const categories = get().categories
+    const category = categories.find(c => c.id === id)
+    
+    // Don't allow updating system categories
+    if (category?.isSystem) {
+      throw new Error("시스템 카테고리는 수정할 수 없습니다")
+    }
+    
     const updatedCategories = categories.map(cat => 
       cat.id === id ? { ...cat, ...updates } : cat
     )
@@ -116,20 +163,20 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
     const categories = get().categories
     const categoryMapping = get().categoryMapping
     
-    // Don't allow deleting default categories
+    // Don't allow deleting default or system categories
     const category = categories.find(c => c.id === id)
-    if (category?.isDefault) {
-      throw new Error("Cannot delete default categories")
+    if (category?.isDefault || category?.isSystem) {
+      throw new Error("기본 카테고리나 시스템 카테고리는 삭제할 수 없습니다")
     }
     
     // Remove category
     const updatedCategories = categories.filter(c => c.id !== id)
     
-    // Update mapping to reassign domains to "other"
+    // Update mapping to reassign domains to "uncategorized"
     const updatedMapping = { ...categoryMapping }
     Object.keys(updatedMapping).forEach(domain => {
       if (updatedMapping[domain] === id) {
-        updatedMapping[domain] = "other"
+        updatedMapping[domain] = "uncategorized"
       }
     })
     
@@ -205,9 +252,9 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
           }
         }
         
-        return "other"
+        return "uncategorized"
       },
-      "other",
+      "uncategorized",
       'categoryStore.getCategoryForDomain'
     )
   },
@@ -221,5 +268,15 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
       categories: DEFAULT_CATEGORIES,
       categoryMapping: {}
     })
+  },
+
+  reorderCategories: async (newCategories) => {
+    // Ensure uncategorized is always at the end
+    const uncategorized = newCategories.find(c => c.id === 'uncategorized')
+    const otherCategories = newCategories.filter(c => c.id !== 'uncategorized')
+    const sorted = uncategorized ? [...otherCategories, uncategorized] : newCategories
+    
+    await chrome.storage.sync.set({ categories: sorted })
+    set({ categories: sorted })
   }
 }))

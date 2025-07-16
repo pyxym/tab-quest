@@ -25,11 +25,45 @@ export const ProductivityScore: React.FC<ProductivityScoreProps> = ({
   
   if (compact) {
     return (
-      <div className="flex items-center gap-2">
-        <span className={`font-bold text-lg ${getScoreColor(score)}`}>
-          {score}
-        </span>
-        <span className="text-sm">{trendIcons[trend]}</span>
+      <div className="inline-flex items-center gap-2 px-2 py-1 glass-card">
+        <div className="relative w-6 h-6">
+          <svg className="w-6 h-6 -rotate-90">
+            <circle
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="2"
+              fill="none"
+              className="text-white/20"
+            />
+            <circle
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="url(#score-gradient)"
+              strokeWidth="2"
+              fill="none"
+              strokeDasharray={`${score * 0.628} 62.8`}
+              className="transition-all duration-1000"
+            />
+            <defs>
+              <linearGradient id="score-gradient">
+                <stop offset="0%" stopColor="#10B981" />
+                <stop offset="100%" stopColor="#F59E0B" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold glass-text">
+            {score}
+          </span>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-xs font-medium glass-text">Productivity</span>
+          <span className="text-[10px] glass-text opacity-60">
+            Score {trend === "up" ? "↑" : trend === "down" ? "↓" : "→"}
+          </span>
+        </div>
       </div>
     )
   }

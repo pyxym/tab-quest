@@ -5,6 +5,7 @@ export interface Category {
   domains: string[]
   keywords: string[]
   isDefault: boolean
+  isSystem?: boolean  // System categories cannot be edited or deleted
   createdAt: number
 }
 
@@ -95,12 +96,13 @@ export const DEFAULT_CATEGORIES: Category[] = [
     createdAt: Date.now()
   },
   {
-    id: "other",
-    name: "Other",
+    id: "uncategorized",
+    name: "미분류",
     color: "grey",
     domains: [],
     keywords: [],
     isDefault: true,
+    isSystem: true,  // This category cannot be edited or deleted
     createdAt: Date.now()
   }
 ]

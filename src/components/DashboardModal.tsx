@@ -98,14 +98,14 @@ export const DashboardModal: React.FC<DashboardModalProps> = ({ onClose }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-[9999] p-4">
       <div className="glass-convex w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="p-5 border-b border-white/20">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-bold ai-gradient-text">
-                TabAI Dashboard
+                TabAI Analytics
               </h1>
               <p className="text-sm text-white/90 mt-1">
                 AI-powered insights for your browsing habits

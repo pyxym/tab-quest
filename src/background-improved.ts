@@ -1,4 +1,7 @@
 // Improved background.ts with better error handling and tab grouping logic
+export {}
+import { DEFAULT_CATEGORIES } from "./types/category"
+import type { Category, CategoryMapping } from "./types/category"
 
 interface GroupingResult {
   success: boolean
@@ -110,62 +113,64 @@ async function findAndCloseDuplicates(tabs: chrome.tabs.Tab[]): Promise<number> 
   return closedCount
 }
 
-// Get category for a tab with improved logic
+// Get category for a tab with improved logic and debug logging
 async function getTabCategory(tab: chrome.tabs.Tab): Promise<string> {
   if (!tab.url) return 'other'
+  
+  console.log(`[DEBUG] getTabCategory for: ${tab.title} (${tab.url})`)
   
   try {
     const url = new URL(tab.url)
     const domain = url.hostname.toLowerCase().replace(/^www\./, '')
+    console.log(`[DEBUG] Normalized domain: ${domain}`)
     
     // Check user-assigned categories first
     const result = await chrome.storage.sync.get(['categoryMapping', 'categories'])
-    const categoryMapping = result.categoryMapping || {}
-    const categories = result.categories || []
+    const categoryMapping: CategoryMapping = result.categoryMapping || {}
+    const categories: Category[] = result.categories || DEFAULT_CATEGORIES
     
-    // Direct domain mapping
+    console.log('[DEBUG] Category mapping:', categoryMapping)
+    console.log('[DEBUG] Available categories:', categories.map(c => c.id))
+    
+    // Direct domain mapping - highest priority
     if (categoryMapping[domain]) {
+      console.log(`[DEBUG] Found user mapping: ${domain} -> ${categoryMapping[domain]}`)
       return categoryMapping[domain]
     }
     
-    // Check categories for domain/keyword matches
+    // Check categories for domain matches
     for (const category of categories) {
-      // Check domain list
-      if (category.domains?.some((d: string) => {
-        const categoryDomain = d.toLowerCase().replace(/^www\./, '')
-        return domain === categoryDomain || domain.endsWith('.' + categoryDomain)
-      })) {
-        return category.id
+      // Check exact domain matches
+      for (const categoryDomain of category.domains) {
+        const normalizedCategoryDomain = categoryDomain.toLowerCase().replace(/^www\./, '')
+        
+        // Exact match
+        if (domain === normalizedCategoryDomain) {
+          console.log(`[DEBUG] Exact domain match: ${domain} -> ${category.id}`)
+          return category.id
+        }
+        
+        // Subdomain match (e.g., mail.google.com matches google.com)
+        if (domain.endsWith('.' + normalizedCategoryDomain)) {
+          console.log(`[DEBUG] Subdomain match: ${domain} -> ${category.id}`)
+          return category.id
+        }
       }
       
-      // Check keywords in title and URL
-      const searchText = `${tab.title || ''} ${tab.url}`.toLowerCase()
-      if (category.keywords?.some((keyword: string) => 
-        searchText.includes(keyword.toLowerCase())
-      )) {
-        return category.id
+      // Check keywords in domain, title, and URL
+      const searchText = `${domain} ${tab.title || ''} ${tab.url}`.toLowerCase()
+      for (const keyword of category.keywords) {
+        if (searchText.includes(keyword.toLowerCase())) {
+          console.log(`[DEBUG] Keyword match "${keyword}": ${domain} -> ${category.id}`)
+          return category.id
+        }
       }
     }
     
-    // Default categorization based on common patterns
-    const defaultCategories = {
-      'work': ['slack', 'teams', 'zoom', 'meet', 'jira', 'confluence', 'notion', 'asana'],
-      'social': ['facebook', 'twitter', 'instagram', 'linkedin', 'reddit', 'discord'],
-      'entertainment': ['youtube', 'netflix', 'twitch', 'spotify', 'hulu', 'disney'],
-      'shopping': ['amazon', 'ebay', 'etsy', 'shopify', 'alibaba', 'walmart'],
-      'news': ['cnn', 'bbc', 'reuters', 'nytimes', 'wsj', 'guardian'],
-      'development': ['github', 'gitlab', 'stackoverflow', 'npm', 'pypi', 'docker']
-    }
-    
-    for (const [categoryId, domains] of Object.entries(defaultCategories)) {
-      if (domains.some(d => domain.includes(d))) {
-        return categoryId
-      }
-    }
-    
+    console.log(`[DEBUG] No match found for ${domain}, returning "other"`)
     return 'other'
   } catch (error) {
-    console.error('Error categorizing tab:', error)
+    console.error('[DEBUG] Error categorizing tab:', error)
     return 'other'
   }
 }
@@ -208,57 +213,66 @@ export async function smartOrganizeTabsImproved(config?: any): Promise<GroupingR
     
     // Step 3: Group tabs by category
     const categoryGroups = new Map<string, number[]>()
+    const tabCategories = new Map<number, string>()
+    
+    console.log('[DEBUG] Starting tab categorization...')
     
     for (const tab of remainingTabs) {
-      if (!tab.id) continue
+      if (!tab.id || !tab.url) continue
+      
+      // Skip special URLs
+      if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
+        console.log(`[DEBUG] Skipping special URL: ${tab.url}`)
+        continue
+      }
       
       const category = await getTabCategory(tab)
+      tabCategories.set(tab.id, category)
+      
       if (!categoryGroups.has(category)) {
         categoryGroups.set(category, [])
       }
       categoryGroups.get(category)!.push(tab.id)
     }
     
-    // Step 4: Create groups for each category with sufficient tabs
-    const colors: chrome.tabGroups.ColorEnum[] = ['blue', 'red', 'yellow', 'green', 'pink', 'purple', 'cyan', 'orange']
-    let colorIndex = 0
-    
+    console.log('[DEBUG] Category groups:')
     for (const [category, tabIds] of categoryGroups) {
-      // Only create groups with 2+ tabs
-      if (tabIds.length < 2) continue
+      console.log(`  ${category}: ${tabIds.length} tabs`)
+    }
+    
+    // Step 4: Get categories configuration for proper names and colors
+    const categoriesResult = await chrome.storage.sync.get(['categories'])
+    const categories: Category[] = categoriesResult.categories || DEFAULT_CATEGORIES
+    const categoryMap = new Map(categories.map(c => [c.id, c]))
+    
+    // Create groups for each category
+    console.log('[DEBUG] Creating tab groups...')
+    
+    for (const [categoryId, tabIds] of categoryGroups) {
+      if (tabIds.length === 0) continue
       
-      const color = colors[colorIndex % colors.length]
-      colorIndex++
+      // Get category details
+      const category = categoryMap.get(categoryId)
+      const groupTitle = category?.name || (categoryId === 'other' ? 'Other' : categoryId.charAt(0).toUpperCase() + categoryId.slice(1))
+      const groupColor = (category?.color || 'grey') as chrome.tabGroups.ColorEnum
+      
+      console.log(`[DEBUG] Creating group "${groupTitle}" with ${tabIds.length} tabs`)
       
       const groupId = await createTabGroup(
         tabIds,
-        category.charAt(0).toUpperCase() + category.slice(1),
-        color
+        groupTitle,
+        groupColor
       )
       
       if (groupId !== null) {
         groupsCreated++
-        console.log(`[TabAI] Created group "${category}" with ${tabIds.length} tabs`)
+        console.log(`[DEBUG] Successfully created group "${groupTitle}"`)
+      } else {
+        console.error(`[DEBUG] Failed to create group "${groupTitle}"`)
       }
     }
     
-    // Step 5: Handle ungrouped tabs
-    const ungroupedTabs = await chrome.tabs.query({ 
-      currentWindow: true, 
-      groupId: chrome.tabGroups.TAB_GROUP_ID_NONE 
-    })
-    
-    if (ungroupedTabs.length >= 3) {
-      const ungroupedIds = ungroupedTabs.map(t => t.id).filter(id => id !== undefined) as number[]
-      const groupId = await createTabGroup(
-        ungroupedIds,
-        'Other',
-        'grey'
-      )
-      if (groupId !== null) {
-        groupsCreated++
-      }
-    }
+    // No need for separate ungrouped handling since all tabs should be categorized
     
     return {
       success: true,

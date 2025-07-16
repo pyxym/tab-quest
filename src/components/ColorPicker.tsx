@@ -4,9 +4,10 @@ interface ColorPickerProps {
   value: chrome.tabGroups.ColorEnum
   onChange: (color: chrome.tabGroups.ColorEnum) => void
   className?: string
+  compact?: boolean
 }
 
-export const ColorPicker: React.FC<ColorPickerProps> = ({ value, onChange, className = "" }) => {
+export const ColorPicker: React.FC<ColorPickerProps> = ({ value, onChange, className = "", compact = false }) => {
   const colors: chrome.tabGroups.ColorEnum[] = [
     "blue", "cyan", "green", "yellow", "orange", "red", "pink", "purple", "grey"
   ]
@@ -24,12 +25,12 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({ value, onChange, class
   }
 
   return (
-    <div className={`flex gap-1.5 p-2 glass-card ${className}`}>
+    <div className={`flex ${compact ? 'gap-0.5' : 'gap-1.5 p-2'} ${compact ? '' : 'glass-card'} ${className}`}>
       {colors.map(color => (
         <button
           key={color}
           onClick={() => onChange(color)}
-          className={`w-6 h-6 rounded-full transition-all hover:scale-110 ${
+          className={`${compact ? 'w-4 h-4' : 'w-6 h-6'} rounded-full transition-all hover:scale-110 ${
             value === color ? 'ring-2 ring-white ring-offset-2 ring-offset-transparent' : ''
           }`}
           style={{ backgroundColor: colorMap[color] }}

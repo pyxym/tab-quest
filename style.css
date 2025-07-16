@@ -160,6 +160,25 @@
     @apply bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent font-bold;
   }
   
+  /* Custom Scrollbar Styles */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  
   /* Select element styling for glass theme */
   select.glass-card {
     -webkit-appearance: none;
