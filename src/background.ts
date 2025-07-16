@@ -2,6 +2,8 @@ export {}
 import { DEFAULT_CATEGORIES } from "./types/category"
 import type { Category, CategoryMapping } from "./types/category"
 import { detectSmartGroups } from "./utils/smartGrouping"
+import { organizeTabs } from "./utils/tabOrganizer"
+import "./background-debug" // Import debug module
 
 // Configuration for smart organize behavior
 interface SmartOrganizeConfig {
@@ -250,6 +252,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     findDuplicateTabs().then(sendResponse)
     return true
   }
+  
+  if (request.action === "testGrouping") {
+    // Handled by background-debug.ts
+    return false
+  }
 })
 
 // Get comprehensive tabs analysis
@@ -315,6 +322,56 @@ async function getTabsAnalysis() {
   }
   
   return analysis
+}
+
+// Helper function to safely ungroup tabs with batch processing
+async function safeUngroup(tabIds: number[]): Promise<void> {
+  if (!tabIds.length) return
+  
+  // Ungroup tabs in small batches to avoid API limits
+  const batchSize = 10
+  for (let i = 0; i < tabIds.length; i += batchSize) {
+    const batch = tabIds.slice(i, i + batchSize)
+    try {
+      await chrome.tabs.ungroup(batch)
+    } catch (error) {
+      // Some tabs might not be grouped, which is OK
+      console.log(`Some tabs in batch couldn't be ungrouped:`, error)
+    }
+  }
+}
+
+// Helper function to create a tab group with proper error handling
+async function createTabGroup(
+  tabIds: number[], 
+  title: string, 
+  color: chrome.tabGroups.ColorEnum
+): Promise<number | null> {
+  if (!tabIds.length) {
+    console.warn(`Cannot create group "${title}" with 0 tabs`)
+    return null
+  }
+  
+  try {
+    // Filter out any invalid tab IDs
+    const validTabIds = tabIds.filter(id => id > 0)
+    if (!validTabIds.length) return null
+    
+    // Create the group
+    const groupId = await chrome.tabs.group({ tabIds: validTabIds })
+    
+    // Update group properties
+    await chrome.tabGroups.update(groupId, { 
+      title, 
+      color,
+      collapsed: false 
+    })
+    
+    return groupId
+  } catch (error) {
+    console.error(`Failed to create group "${title}":`, error)
+    return null
+  }
 }
 
 // Enhanced smart organize with better error handling and user preferences
@@ -409,17 +466,10 @@ async function smartOrganizeTabs(userConfig?: Partial<SmartOrganizeConfig>) {
     // Step 4: Ungroup all existing tabs first to ensure clean grouping
     console.log('[DEBUG] Existing group IDs to ungroup:', Array.from(existingGroupIds))
     
-    // First, ungroup ALL tabs in the current window to ensure clean slate
-    try {
-      const allTabIds = remainingTabs.map(t => t.id).filter(id => id !== undefined) as number[]
-      if (allTabIds.length > 0) {
-        await chrome.tabs.ungroup(allTabIds)
-        console.log('[DEBUG] Ungrouped all tabs successfully')
-      }
-    } catch (error) {
-      console.error('[DEBUG] Error ungrouping all tabs:', error)
-      // Continue anyway, some tabs might not be in groups
-    }
+    // Use safe ungrouping function with batch processing
+    const allTabIds = remainingTabs.map(t => t.id).filter(id => id !== undefined) as number[]
+    await safeUngroup(allTabIds)
+    console.log('[DEBUG] Ungrouped all tabs successfully')
     
     // Step 5: Enhanced project detection with more platforms
     const projectPatterns = [
@@ -580,43 +630,16 @@ async function smartOrganizeTabs(userConfig?: Partial<SmartOrganizeConfig>) {
     for (const [categoryId, tabIds] of categoryGroups) {
       // Group all categories with tabs, including "Other"
       if (tabIds.length > 0) {
-        try {
-          console.log(`[DEBUG] Attempting to group ${tabIds.length} tabs for category: ${categoryId}`)
-          
-          // Verify tabs exist before grouping
-          const validTabs = await Promise.all(
-            tabIds.map(async (id) => {
-              try {
-                const tab = await chrome.tabs.get(id)
-                return tab ? id : null
-              } catch {
-                return null
-              }
-            })
-          )
-          const validTabIds = validTabs.filter(id => id !== null) as number[]
-          
-          if (validTabIds.length === 0) {
-            console.warn(`[DEBUG] No valid tabs found for category ${categoryId}`)
-            continue
-          }
-          
-          const groupId = await chrome.tabs.group({ tabIds: validTabIds })
+        const category = categoryMap.get(categoryId)
+        const groupTitle = category?.name || (categoryId === 'other' ? 'Other' : categoryId.charAt(0).toUpperCase() + categoryId.slice(1))
+        const groupColor = (category?.color || "grey") as chrome.tabGroups.ColorEnum
+        
+        const groupId = await createTabGroup(tabIds, groupTitle, groupColor)
+        if (groupId !== null) {
           groupsCreated++
           undoState.groupIds.push(groupId)
-          
-          const category = categoryMap.get(categoryId)
-          const groupTitle = category?.name || (categoryId === 'other' ? 'Other' : categoryId.charAt(0).toUpperCase() + categoryId.slice(1))
-          
-          await chrome.tabGroups.update(groupId, {
-            title: groupTitle,
-            color: category?.color || "grey",
-            collapsed: false
-          })
-          
-          console.log(`[DEBUG] Successfully grouped ${validTabIds.length} tabs as "${groupTitle}"`)
-        } catch (error) {
-          console.error(`[DEBUG] Error creating category group for ${categoryId}:`, error)
+          console.log(`[DEBUG] Successfully grouped ${tabIds.length} tabs as "${groupTitle}"`)
+        } else {
           errors.push(`Failed to group ${categoryId} tabs`)
         }
       }
@@ -630,20 +653,16 @@ async function smartOrganizeTabs(userConfig?: Partial<SmartOrganizeConfig>) {
       const shouldGroup = config.groupSingleTabs || tabIds.length >= config.minGroupSize
       
       if (shouldGroup && tabIds.length > 0) {
-        try {
-          const groupId = await chrome.tabs.group({ tabIds })
+        const [prefix, projectName] = projectKey.split(':')
+        const groupTitle = `📁 ${projectName}`
+        const groupColor = projectColors[colorIndex % projectColors.length]
+        
+        const groupId = await createTabGroup(tabIds, groupTitle, groupColor)
+        if (groupId !== null) {
           groupsCreated++
           undoState.groupIds.push(groupId)
-          
-          const [prefix, projectName] = projectKey.split(':')
-          await chrome.tabGroups.update(groupId, {
-            title: `📁 ${projectName}`,
-            color: projectColors[colorIndex % projectColors.length],
-            collapsed: false
-          })
           colorIndex++
-        } catch (error) {
-          console.error("Error creating project group:", error)
+        } else {
           errors.push(`Failed to group project ${projectKey}`)
         }
       }
@@ -651,19 +670,14 @@ async function smartOrganizeTabs(userConfig?: Partial<SmartOrganizeConfig>) {
     
     // Create smart groups
     for (const smartGroup of smartGroups) {
-      try {
-        const groupId = await chrome.tabs.group({ tabIds: smartGroup.tabIds })
+      const groupColor = projectColors[colorIndex % projectColors.length]
+      const groupId = await createTabGroup(smartGroup.tabIds, smartGroup.name, groupColor)
+      
+      if (groupId !== null) {
         groupsCreated++
         undoState.groupIds.push(groupId)
-        
-        await chrome.tabGroups.update(groupId, {
-          title: smartGroup.name,
-          color: projectColors[colorIndex % projectColors.length],
-          collapsed: false
-        })
         colorIndex++
-      } catch (error) {
-        console.error("Error creating smart group:", error)
+      } else {
         errors.push(`Failed to create smart group ${smartGroup.name}`)
       }
     }

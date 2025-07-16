@@ -148,6 +148,22 @@ function IndexPopup() {
     setShowDashboard(true)
   }
   
+  async function handleTestGrouping() {
+    try {
+      const result = await chrome.runtime.sendMessage({ action: "testGrouping" })
+      console.log('[TabAI] Test result:', result)
+      if (result.success) {
+        alert(`Test successful! ${result.message}`)
+      } else {
+        alert(`Test failed: ${result.message}`)
+      }
+      loadTabsAndAnalyze()
+    } catch (error) {
+      console.error('Test grouping failed:', error)
+      alert(`Error: ${error}`)
+    }
+  }
+  
   return (
     <>
       <div className="w-96 h-[600px] relative overflow-hidden">
@@ -248,6 +264,16 @@ function IndexPopup() {
                 onClick={handleViewDashboard}
               >
                 📊 View Dashboard
+              </button>
+            </div>
+            
+            {/* Debug button */}
+            <div className="mt-3">
+              <button 
+                className="w-full glass-button text-xs glass-text opacity-60 hover:opacity-100"
+                onClick={handleTestGrouping}
+              >
+                🔧 Test Simple Grouping (Debug)
               </button>
             </div>
             </div>

@@ -99,7 +99,9 @@ export class DataValidator {
       insight !== null &&
       typeof insight.id === 'string' &&
       typeof insight.type === 'string' &&
-      typeof insight.message === 'string' &&
+      typeof insight.title === 'string' &&
+      typeof insight.description === 'string' &&
+      typeof insight.priority === 'string' &&
       typeof insight.timestamp === 'number'
     )
   }
