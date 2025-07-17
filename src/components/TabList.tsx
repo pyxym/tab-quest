@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { useCategoryStore } from "../store/categoryStore"
 import { FavIcon } from "./FavIcon"
+import { InfoTooltip } from "./InfoTooltip"
 import type { Category } from "../types/category"
 import { organizeTabsUnified } from "../utils/unifiedOrganizer"
 
@@ -123,20 +124,33 @@ export const TabList: React.FC<TabListProps> = ({ onClose }) => {
       <div className="glass-main rounded-[24px] w-full max-w-2xl h-[90vh] max-h-[90vh] flex flex-col">
         <div className="px-4 py-4 border-b border-white/20">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold ai-gradient-text">
-              Assign Tabs to Categories
-            </h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold ai-gradient-text">
+                Assign Tabs to Categories
+              </h2>
+              <InfoTooltip 
+                title="탭 카테고리 할당"
+                description="각 탭을 적절한 카테고리로 분류하여 효율적으로 관리하세요."
+                features={[
+                  "도메인 단위로 카테고리 할당",
+                  "같은 도메인의 모든 탭은 동일한 카테고리 사용",
+                  "Apply 버튼으로 브라우저에 탭 그룹 생성"
+                ]}
+                position="bottom"
+              />
+            </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={organizeTabsByCategory}
-                className="glass-button-primary !py-2 !px-4 text-sm"
+                className="glass-button-primary py-2 px-3 text-sm"
                 disabled={isOrganizing || isUpdating}
+                title="Apply category grouping to browser tabs"
               >
-                {isOrganizing ? '⏳ Organizing...' : '🔄 Apply Grouping'}
+                {isOrganizing ? '⏳ Applying...' : '🎯 Apply'}
               </button>
               <button
                 onClick={onClose}
-                className="glass-button-primary !p-2 !px-3"
+                className="glass-button-primary p-2 px-3"
               >
                 ✕
               </button>
@@ -149,38 +163,35 @@ export const TabList: React.FC<TabListProps> = ({ onClose }) => {
             {tabs.map((tab) => (
               <div 
                 key={tab.id} 
-                className={`glass-card !py-2.5 !px-3 transition-all ${
+                className={`glass-card py-2 px-3 transition-all ${
                   selectedTab === tab.id ? 'ring-2 ring-green-500' : ''
                 }`}
               >
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                  {/* Tab Info Row */}
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    {/* Favicon */}
-                    <FavIcon url={tab.favIconUrl || tab.url} size={20} className="flex-shrink-0" />
-                    
-                    {/* Tab Details */}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium glass-text truncate">
-                        {tab.title || 'Untitled'}
-                      </p>
-                      <p className="text-xs glass-text opacity-70 truncate">
-                        {tab.url ? new URL(tab.url).hostname : 'Unknown'}
-                      </p>
-                    </div>
+                <div className="flex items-center gap-3">
+                  {/* Favicon */}
+                  <FavIcon url={tab.favIconUrl || tab.url} size={18} className="flex-shrink-0" />
+                  
+                  {/* Tab Title (single line) */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm glass-text truncate" title={`${tab.title} - ${tab.url}`}>
+                      {tab.title || 'Untitled'}
+                      <span className="opacity-50 ml-2 text-xs">
+                        {tab.url ? `• ${new URL(tab.url).hostname}` : ''}
+                      </span>
+                    </p>
                   </div>
                   
-                  {/* Category Controls */}
-                  <div className="flex items-center gap-2 sm:gap-3">
+                  {/* Category Selector */}
+                  <div className="flex items-center gap-2">
                     <div 
-                      className="w-3 h-3 rounded-full flex-shrink-0"
+                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                       style={{ backgroundColor: getCategoryColor(tab.category || "other") }}
                     />
                     <select
                       value={tab.category || "other"}
                       onChange={(e) => handleCategoryChange(tab.id!, tab.url!, e.target.value)}
                       disabled={isUpdating || !tab.url}
-                      className="px-3 py-1.5 text-sm glass-card !p-2 border-none outline-none focus:ring-2 focus:ring-purple-500/50 min-w-[120px] glass-text"
+                      className="px-2 py-1 text-xs glass-card border-none outline-none focus:ring-2 focus:ring-purple-500/50 min-w-[100px] glass-text"
                     >
                       {categories.map(category => (
                         <option key={category.id} value={category.id}>
@@ -191,9 +202,7 @@ export const TabList: React.FC<TabListProps> = ({ onClose }) => {
                     
                     {/* Success Indicator */}
                     {selectedTab === tab.id && (
-                      <span className="text-green-500 text-lg">
-                        ✓
-                      </span>
+                      <span className="text-green-500 text-sm">✓</span>
                     )}
                   </div>
                 </div>

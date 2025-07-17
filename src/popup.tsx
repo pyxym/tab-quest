@@ -164,7 +164,10 @@ function IndexPopup() {
               if (tabsToClose.length > 0) {
                 await chrome.tabs.remove(tabsToClose)
                 
-                // Show success message
+                // Remove the duplicate warning first
+                removeInsight("duplicates")
+                
+                // Then show success message
                 addInsight({
                   id: `duplicates-removed-${Date.now()}`,
                   type: "tip",
@@ -172,13 +175,6 @@ function IndexPopup() {
                   description: `Successfully closed ${closedCount} duplicate tab${closedCount > 1 ? 's' : ''}`,
                   priority: "medium",
                   timestamp: Date.now()
-                })
-                
-                // Remove the duplicate warning
-                insights.forEach(insight => {
-                  if (insight.id === "duplicates") {
-                    removeInsight(insight.id)
-                  }
                 })
               } else {
                 console.log('[TabAI] No duplicates found to remove')
@@ -438,7 +434,7 @@ function IndexPopup() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowHelp(true)}
-                className="p-2 glass-card !p-2 transition-all hover:scale-105"
+                className="glass-card p-2 transition-all hover:scale-105"
                 title="Help & Guide"
               >
                 <svg className="w-4 h-4 glass-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -447,7 +443,7 @@ function IndexPopup() {
               </button>
               <button
                 onClick={() => setShowTabList(true)}
-                className="p-2 glass-card !p-2 transition-all hover:scale-105"
+                className="glass-card p-2 transition-all hover:scale-105"
                 title="Assign Tabs to Categories"
               >
                 <svg className="w-4 h-4 glass-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -456,7 +452,7 @@ function IndexPopup() {
               </button>
               <button
                 onClick={() => setShowCategoryManager(true)}
-                className="p-2 glass-card !p-2 transition-all hover:scale-105"
+                className="glass-card p-2 transition-all hover:scale-105"
                 title="Manage Categories"
               >
                 <svg className="w-4 h-4 glass-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -465,8 +461,28 @@ function IndexPopup() {
               </button>
               <div className="relative group">
                 <button
-                  className="p-2 glass-card !p-2 transition-all hover:scale-105"
+                  className="glass-card p-2 transition-all hover:scale-105"
                   title="Settings"
+                  onClick={(e) => {
+                    // Toggle dropdown visibility on click
+                    const dropdown = e.currentTarget.nextElementSibling;
+                    if (dropdown) {
+                      dropdown.classList.toggle('opacity-0');
+                      dropdown.classList.toggle('invisible');
+                      dropdown.classList.toggle('opacity-100');
+                      dropdown.classList.toggle('visible');
+                    }
+                  }}
+                  onBlur={(e) => {
+                    // Close dropdown when focus leaves the button and dropdown
+                    setTimeout(() => {
+                      const dropdown = e.currentTarget.nextElementSibling;
+                      if (dropdown && !dropdown.contains(document.activeElement)) {
+                        dropdown.classList.add('opacity-0', 'invisible');
+                        dropdown.classList.remove('opacity-100', 'visible');
+                      }
+                    }, 200);
+                  }}
                 >
                   <svg className="w-4 h-4 glass-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
