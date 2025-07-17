@@ -12,6 +12,7 @@ import { useTabStore } from "./store/tabStore"
 import { useAIStore } from "./store/aiStore"
 import { useCategoryStore } from "./store/categoryStore"
 import { calculateProductivityScore, findDuplicates } from "./utils/tabAnalyzer"
+import { organizeTabsUnified } from "./utils/unifiedOrganizer"
 import "../style.css"
 
 function IndexPopup() {
@@ -26,9 +27,12 @@ function IndexPopup() {
   const [showHelp, setShowHelp] = useState(false)
   
   useEffect(() => {
-    loadCategories()
-    loadTabsAndAnalyze()
-    checkFirstTimeUser()
+    async function init() {
+      await loadCategories()
+      await loadTabsAndAnalyze()
+      checkFirstTimeUser()
+    }
+    init()
   }, [loadCategories])
   
   async function checkFirstTimeUser() {
@@ -231,7 +235,10 @@ function IndexPopup() {
   async function handleSmartOrganize() {
     setIsOrganizing(true)
     try {
-      const result = await chrome.runtime.sendMessage({ action: "smartOrganize" })
+      const result = await chrome.runtime.sendMessage({ 
+        action: "organizeByCategories",
+        categories: categories
+      })
       if (result.success) {
         addInsight({
           id: `organize-success-${Date.now()}`,
@@ -278,14 +285,11 @@ function IndexPopup() {
     console.log('[TabAI] Set isOrganizing to true')
     
     try {
-      console.log('[TabAI] Starting Smart organization by categories...')
+      console.log('[TabAI] Starting Smart organization...')
+      console.log('[TabAI] Categories available:', categories?.length || 0)
       
-      // Direct smart organize without ping check
-      console.log('[TabAI] Sending smartOrganize request...')
-      
-      const result = await chrome.runtime.sendMessage({ 
-        action: "smartOrganize"
-      })
+      // Use the unified organization function
+      const result = await organizeTabsUnified(categories)
       
       console.log('[TabAI] Organization result:', result)
       
@@ -342,7 +346,21 @@ function IndexPopup() {
       console.error('Smart organization failed:', error)
       
       // Check if it's a timeout error
-      if (error.message?.includes('timeout')) {
+      if (error.message?.includes('Timeout') || error.message?.includes('timeout')) {
+        // Try fallback to smartOrganize
+        console.log('[TabAI] Timeout occurred, trying smartOrganize as fallback')
+        try {
+          const fallbackResult = await chrome.runtime.sendMessage({ 
+            action: "smartOrganize"
+          })
+          if (fallbackResult?.success) {
+            handleOrganizeResult(fallbackResult)
+            return
+          }
+        } catch (fallbackError) {
+          console.error('[TabAI] Fallback also failed:', fallbackError)
+        }
+        
         addInsight({
           id: `ai-organize-timeout-${Date.now()}`,
           type: "alert",
@@ -365,6 +383,10 @@ function IndexPopup() {
       console.log('[TabAI] Finally block: setting isOrganizing to false')
       // Ensure state is reset
       setIsOrganizing(false)
+      // Reload data
+      setTimeout(() => {
+        loadTabsAndAnalyze()
+      }, 500)
     }
   }
   
@@ -410,7 +432,7 @@ function IndexPopup() {
                 <AILogo size="medium" />
                 <div>
                   <h1 className="font-bold text-lg ai-gradient-text">TabAI</h1>
-                  <p className="text-xs glass-text opacity-70">Your AI-Powered Tab Assistant</p>
+                  <p className="text-xs glass-text opacity-70">Tab Assistant</p>
                 </div>
               </div>
             <div className="flex items-center gap-2">
@@ -517,8 +539,8 @@ function IndexPopup() {
               </h2>
             </div>
             <InfoTooltip 
-              title="AI Insights"
-              description="AI가 분석한 탭 사용 패턴과 개선 제안을 확인하세요."
+              title="Tab Insights"
+              description="탭 사용 패턴과 개선 제안을 확인하세요."
               features={[
                 "중복 탭 감지 및 정리 제안",
                 "카테고리별 사용 패턴 분석",
@@ -527,7 +549,7 @@ function IndexPopup() {
               position="bottom-left"
             />
           </div>
-          <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+          <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-track-transparent">
             <div className="space-y-3 pr-2">
               {insights.length === 0 ? (
                 <div className="flex items-center justify-center h-full min-h-[120px]">
@@ -537,7 +559,7 @@ function IndexPopup() {
                     </div>
                     <div>
                       <p className="text-sm glass-text font-medium">
-                        AI가 탭 사용 패턴을 분석 중입니다
+                        탭 사용 패턴을 분석 중입니다
                       </p>
                       <p className="text-xs glass-text opacity-60">
                         곧 맞춤형 인사이트를 제공해드릴게요

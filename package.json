@@ -2,7 +2,7 @@
   "name": "tabai",
   "displayName": "TabAI - AI-Powered Tab Assistant",
   "version": "0.0.1",
-  "description": "AI가 주도하는 차세대 브라우저 탭 관리의 미래",
+  "description": "브라우저 탭 관리",
   "author": "TabAI",
   "license": "MIT",
   "scripts": {
@@ -30,7 +30,9 @@
       "tabs",
       "storage",
       "activeTab",
-      "tabGroups"
+      "tabGroups",
+      "windows",
+      "alarms"
     ],
     "options_ui": {
       "page": "options.html",

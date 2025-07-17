@@ -1,6 +1,12 @@
 // Error boundary utility for robust error handling
+
+interface ErrorInfo {
+  count: number
+  firstSeen: number
+}
+
 export class ErrorBoundary {
-  private static errorCount = new Map<string, number>()
+  private static errorCount = new Map<string, ErrorInfo>()
   private static readonly MAX_ERRORS = 5
   private static readonly ERROR_WINDOW = 60000 // 1 minute
 

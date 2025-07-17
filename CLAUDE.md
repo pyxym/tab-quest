@@ -36,7 +36,7 @@ npm run package
 ```
 tabai/
 ├── src/
-│   ├── components/     # React components (AILogo, AIInsightCard, etc.)
+│   ├── components/    # React components (AILogo, AIInsightCard, etc.)
 │   ├── store/         # Zustand stores (tabStore.ts, aiStore.ts)
 │   ├── hooks/         # Custom React hooks
 │   ├── lib/           # AI/ML logic and utilities

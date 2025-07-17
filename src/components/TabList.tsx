@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react"
 import { useCategoryStore } from "../store/categoryStore"
 import { FavIcon } from "./FavIcon"
 import type { Category } from "../types/category"
+import { organizeTabsUnified } from "../utils/unifiedOrganizer"
 
 interface TabListProps {
   onClose: () => void
@@ -16,6 +17,7 @@ export const TabList: React.FC<TabListProps> = ({ onClose }) => {
   const [tabs, setTabs] = useState<TabWithCategory[]>([])
   const [selectedTab, setSelectedTab] = useState<number | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
+  const [isOrganizing, setIsOrganizing] = useState(false)
 
   useEffect(() => {
     loadCategories()
@@ -27,7 +29,7 @@ export const TabList: React.FC<TabListProps> = ({ onClose }) => {
     const tabsWithCategories = allTabs.map(tab => {
       if (tab.url) {
         try {
-          const domain = new URL(tab.url).hostname
+          const domain = new URL(tab.url).hostname.replace(/^www\./, '')
           const category = getCategoryForDomain(domain)
           return { ...tab, category }
         } catch {
@@ -36,7 +38,16 @@ export const TabList: React.FC<TabListProps> = ({ onClose }) => {
       }
       return { ...tab, category: "uncategorized" }
     })
-    setTabs(tabsWithCategories)
+    
+    // Sort tabs by category order
+    const categoryOrder = categories.map(c => c.id)
+    const sortedTabs = tabsWithCategories.sort((a, b) => {
+      const aIndex = categoryOrder.indexOf(a.category || 'uncategorized')
+      const bIndex = categoryOrder.indexOf(b.category || 'uncategorized')
+      return aIndex - bIndex
+    })
+    
+    setTabs(sortedTabs)
   }
 
   const handleCategoryChange = async (tabId: number, tabUrl: string, newCategoryId: string) => {
@@ -44,32 +55,34 @@ export const TabList: React.FC<TabListProps> = ({ onClose }) => {
     
     setIsUpdating(true)
     try {
-      const domain = new URL(tabUrl).hostname
+      const domain = new URL(tabUrl).hostname.replace(/^www\./, '')
       await assignDomainToCategory(domain, newCategoryId)
       
-      // Update local state
-      setTabs(tabs.map(tab => 
-        tab.id === tabId ? { ...tab, category: newCategoryId } : tab
-      ))
+      // Update local state - all tabs from the same domain
+      setTabs(tabs.map(tab => {
+        if (tab.url) {
+          try {
+            const tabDomain = new URL(tab.url).hostname.replace(/^www\./, '')
+            if (tabDomain === domain) {
+              return { ...tab, category: newCategoryId }
+            }
+          } catch {
+            // Ignore invalid URLs
+          }
+        }
+        return tab
+      }))
       
-      // Teach AI about this user preference
-      try {
-        await chrome.runtime.sendMessage({
-          action: 'learnReassignment',
-          tabId: tabId,
-          category: newCategoryId
-        })
-        console.log('[TabAI] AI learned from reassignment')
-      } catch (error) {
-        console.error('[TabAI] Failed to update AI learning:', error)
-      }
+      // Skip AI learning for now - background script doesn't handle this yet
+      // TODO: Implement AI learning in future version
       
-      // Auto-organize tabs after category change
-      await organizeTabsByCategory()
-      
-      // Show success feedback
+      // Don't auto-organize here - let user click Apply Grouping
+      // Just show success feedback
       setSelectedTab(tabId)
       setTimeout(() => setSelectedTab(null), 1500)
+      
+      // Reload tabs to show updated categories
+      await loadTabs()
     } catch (error) {
       console.error("Failed to update category:", error)
     } finally {
@@ -78,70 +91,25 @@ export const TabList: React.FC<TabListProps> = ({ onClose }) => {
   }
   
   const organizeTabsByCategory = async () => {
+    if (isOrganizing) return
+    
     try {
-      console.log('[TabAI] Organizing tabs by category...')
+      console.log('[TabAI] Using unified organization...')
+      setIsOrganizing(true)
       
-      // Get current tabs with their categories
-      const currentTabs = await chrome.tabs.query({ currentWindow: true })
-      const categoryGroups = new Map<string, number[]>()
+      // Use the unified organization function
+      const result = await organizeTabsUnified(categories)
       
-      // Group tabs by category
-      for (const tab of currentTabs) {
-        if (!tab.id || !tab.url) continue
-        
-        // Skip special URLs
-        if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
-          continue
-        }
-        
-        try {
-          const domain = new URL(tab.url).hostname
-          const category = getCategoryForDomain(domain)
-          
-          if (!categoryGroups.has(category)) {
-            categoryGroups.set(category, [])
-          }
-          categoryGroups.get(category)!.push(tab.id)
-        } catch (error) {
-          console.error('Error processing tab:', error)
-        }
-      }
+      console.log('[TabAI] Tab organization complete:', result)
       
-      // First, ungroup all tabs
-      const allTabIds = currentTabs.map(t => t.id).filter(id => id !== undefined) as number[]
-      if (allTabIds.length > 0) {
-        try {
-          await chrome.tabs.ungroup(allTabIds)
-        } catch (e) {
-          console.log('Some tabs were already ungrouped')
-        }
-      }
-      
-      // Create groups for each category in the correct order
-      // Sort by category order from the store
-      for (const category of categories) {
-        const tabIds = categoryGroups.get(category.id)
-        if (!tabIds || tabIds.length === 0) continue
-        
-        try {
-          const groupId = await chrome.tabs.group({ tabIds })
-          await chrome.tabGroups.update(groupId, {
-            title: category.name,
-            color: category.color as chrome.tabGroups.ColorEnum,
-            collapsed: false
-          })
-          console.log(`[TabAI] Created group "${category.name}" with ${tabIds.length} tabs`)
-          
-          // Move the group to maintain order
-          await chrome.tabGroups.move(groupId, { index: -1 })
-        } catch (error) {
-          console.error(`Failed to create group for ${category.id}:`, error)
-        }
-      }
-      
-      console.log('[TabAI] Tab organization complete')
+      // Reload tabs after organization
+      setTimeout(() => {
+        loadTabs()
+      }, 500)
     } catch (error) {
       console.error('[TabAI] Failed to organize tabs:', error)
+    } finally {
+      setIsOrganizing(false)
     }
   }
 
@@ -162,9 +130,9 @@ export const TabList: React.FC<TabListProps> = ({ onClose }) => {
               <button
                 onClick={organizeTabsByCategory}
                 className="glass-button-primary !py-2 !px-4 text-sm"
-                disabled={isUpdating}
+                disabled={isOrganizing || isUpdating}
               >
-                {isUpdating ? '⏳ Organizing...' : '🔄 Apply Grouping'}
+                {isOrganizing ? '⏳ Organizing...' : '🔄 Apply Grouping'}
               </button>
               <button
                 onClick={onClose}

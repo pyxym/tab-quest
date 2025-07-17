@@ -1,862 +1,398 @@
 export {}
-import { DEFAULT_CATEGORIES } from "./types/category"
-import type { Category, CategoryMapping } from "./types/category"
-import { detectSmartGroups } from "./utils/smartGrouping"
-import { organizeTabs } from "./utils/tabOrganizer"
-import "./background-debug" // Import debug module
-import "./background-ai" // Import AI-powered organization module
+import { TabTracker } from './utils/tabTracker'
+import { TabTrackerDebug } from './utils/debugTabTracker'
 
-// Configuration for smart organize behavior
-interface SmartOrganizeConfig {
-  closeDuplicates: boolean
-  minGroupSize: number
-  respectUserCategories: boolean
-  enableSmartGroups: boolean
-  prioritizeRecent: boolean
-  groupSingleTabs: boolean
-}
-
-// Store for undo operations
-interface UndoState {
-  timestamp: number
-  groupIds: number[]
-  ungroupedTabs: number[]
-  closedTabs: Array<{ url: string, title: string }>
-}
-
-let lastUndoState: UndoState | null = null
-
-// Tab monitoring and AI analysis
-chrome.runtime.onInstalled.addListener(async () => {
-  console.log("TabAI installed and ready!")
-  
-  // Initialize default settings with more options
-  chrome.storage.local.set({
-    aiEnabled: true,
-    autoGrouping: true,
-    productivityTracking: true,
-    smartOrganizeConfig: {
-      closeDuplicates: true,
-      minGroupSize: 2,
-      respectUserCategories: true,
-      enableSmartGroups: true,
-      prioritizeRecent: true,
-      groupSingleTabs: false
-    } as SmartOrganizeConfig
+// Suppress external extension errors
+if (typeof window !== 'undefined') {
+  window.addEventListener('error', (event) => {
+    if (event.message?.includes('MetaMask') || event.message?.includes('inpage.js')) {
+      event.preventDefault()
+      return
+    }
   })
-  
-  // Initialize categories if not exist
-  const result = await chrome.storage.sync.get(["categories"])
-  if (!result.categories) {
-    await chrome.storage.sync.set({ 
-      categories: DEFAULT_CATEGORIES,
-      categoryMapping: {}
-    })
-  }
-  
-  // Clean up old tab data on install
-  await chrome.storage.local.set({ tabsData: {} })
+}
+
+console.log('[TabAI] Background script loaded at', new Date().toISOString())
+
+// Initialize tab tracking
+TabTracker.initialize().then(() => {
+  console.log('[TabAI] Tab tracking initialized')
+}).catch(error => {
+  console.error('[TabAI] Failed to initialize tab tracking:', error)
 })
 
-// Clean up tab data periodically (every 30 minutes)
-setInterval(async () => {
+// Clean up old data daily
+setInterval(() => {
+  TabTracker.cleanupOldData()
+}, 24 * 60 * 60 * 1000) // Once per day
+
+// Simple message handler for tab organization
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log('[TabAI] Received message:', request?.action || 'unknown action', request)
+  
+  // Simple ping test
+  if (request.action === 'ping') {
+    console.log('[TabAI] Responding to ping')
+    sendResponse({ success: true, message: 'pong' })
+    return true
+  }
+  
+  if (request.action === 'smartOrganize' || request.action === 'aiOrganize') {
+    console.log('[TabAI Background] Received smartOrganize/aiOrganize request')
+    organizeTabsSimple()
+      .then(sendResponse)
+      .catch(error => {
+        console.error('[TabAI] Error:', error)
+        sendResponse({ success: false, message: error.message })
+      })
+    return true // Keep channel open for async response
+  }
+  
+  if (request.action === 'getTabsAnalysis') {
+    getTabsAnalysis()
+      .then(sendResponse)
+      .catch(error => {
+        console.error('[TabAI] Error:', error)
+        sendResponse({ error: error.message })
+      })
+    return true
+  }
+  
+  if (request.action === 'organizeByCategories') {
+    console.log('[TabAI Background] Received organizeByCategories request')
+    if (!request.categories) {
+      console.error('[TabAI Background] No categories provided!')
+      sendResponse({ success: false, message: 'No categories provided' })
+      return false
+    }
+    organizeTabsByCategories(request.categories)
+      .then(result => {
+        console.log('[TabAI Background] Organization complete, sending response:', result)
+        sendResponse(result)
+      })
+      .catch(error => {
+        console.error('[TabAI Background] Organization error:', error)
+        sendResponse({ success: false, message: error.message })
+      })
+    return true
+  }
+  
+  return false
+})
+
+// Simple tab organization function
+async function organizeTabsSimple() {
   try {
-    const result = await chrome.storage.local.get("tabsData")
-    const tabsData = result.tabsData || {}
-    const tabs = await chrome.tabs.query({})
-    const activeTabIds = new Set(tabs.map(tab => tab.id).filter(id => id !== undefined))
+    const tabs = await chrome.tabs.query({ currentWindow: true })
+    console.log(`[TabAI] Found ${tabs.length} tabs to organize`)
     
-    // Remove data for tabs that no longer exist
-    const cleanedData: any = {}
-    for (const [tabId, data] of Object.entries(tabsData)) {
-      if (activeTabIds.has(parseInt(tabId))) {
-        cleanedData[tabId] = data
+    // First, ungroup all tabs
+    const allTabIds = tabs
+      .map(tab => tab.id)
+      .filter((id): id is number => id !== undefined)
+    
+    if (allTabIds.length > 0) {
+      try {
+        await chrome.tabs.ungroup(allTabIds)
+        console.log('[TabAI] Ungrouped all tabs')
+      } catch (e) {
+        console.log('[TabAI] Some tabs were already ungrouped')
       }
     }
     
-    // Keep only the most recent 1000 tabs data to prevent unbounded growth
-    const entries = Object.entries(cleanedData)
-    if (entries.length > 1000) {
-      entries.sort((a: any, b: any) => b[1].lastAccessed - a[1].lastAccessed)
-      const limitedData: any = {}
-      entries.slice(0, 1000).forEach(([id, data]) => {
-        limitedData[id] = data
-      })
-      await chrome.storage.local.set({ tabsData: limitedData })
-    } else {
-      await chrome.storage.local.set({ tabsData: cleanedData })
-    }
-  } catch (error) {
-    console.error("Error cleaning tab data:", error)
-  }
-}, 30 * 60 * 1000) // 30 minutes
-
-// Clean up when tab is closed
-chrome.tabs.onRemoved.addListener(async (tabId) => {
-  try {
-    const result = await chrome.storage.local.get("tabsData")
-    const tabsData = result.tabsData || {}
-    delete tabsData[tabId]
-    await chrome.storage.local.set({ tabsData })
-  } catch (error) {
-    console.error("Error removing tab data:", error)
-  }
-})
-
-// Monitor tab creation
-chrome.tabs.onCreated.addListener((tab) => {
-  console.log("New tab created:", tab.url)
-  analyzeAndCategorizeTab(tab)
-})
-
-// Monitor tab updates
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === "complete" && tab.url) {
-    analyzeAndCategorizeTab(tab)
-  }
-})
-
-// Monitor tab activation for usage tracking
-chrome.tabs.onActivated.addListener(async (activeInfo) => {
-  try {
-    const tab = await chrome.tabs.get(activeInfo.tabId)
-    updateTabAccessTime(tab)
-  } catch (error) {
-    console.error("Error getting active tab:", error)
-  }
-})
-
-// Analyze and categorize tabs with better error handling
-async function analyzeAndCategorizeTab(tab: chrome.tabs.Tab) {
-  if (!tab.url || !tab.id) return
-  
-  try {
-    const domain = new URL(tab.url).hostname
-    const category = await getCategoryForDomain(domain)
+    // Group tabs by domain
+    const domainGroups = new Map<string, number[]>()
     
-    // Store tab metadata
-    const tabData = {
-      id: tab.id,
-      url: tab.url,
-      title: tab.title || "",
-      domain,
-      category,
-      lastAccessed: Date.now(),
-      accessCount: 1
+    for (const tab of tabs) {
+      if (!tab.id || !tab.url) continue
+      
+      // Skip special URLs
+      if (tab.url.startsWith('chrome://') || 
+          tab.url.startsWith('chrome-extension://') ||
+          tab.url.startsWith('edge://')) {
+        continue
+      }
+      
+      try {
+        const url = new URL(tab.url)
+        const domain = url.hostname.replace(/^www\./, '')
+        
+        if (!domainGroups.has(domain)) {
+          domainGroups.set(domain, [])
+        }
+        domainGroups.get(domain)!.push(tab.id)
+      } catch (error) {
+        console.error(`[TabAI] Error parsing URL: ${tab.url}`)
+      }
     }
     
-    // Get existing tabs data with error handling
-    const result = await chrome.storage.local.get("tabsData")
-    const tabsData = result.tabsData || {}
+    // Create groups for domains with 2+ tabs
+    let groupsCreated = 0
+    const colors: chrome.tabGroups.ColorEnum[] = 
+      ['blue', 'red', 'yellow', 'green', 'pink', 'purple', 'cyan', 'orange']
+    let colorIndex = 0
     
-    // Update or add tab data
-    if (tabsData[tab.id]) {
-      tabsData[tab.id].accessCount++
-      tabsData[tab.id].lastAccessed = Date.now()
-      tabsData[tab.id].category = category // Always update to latest category
-    } else {
-      tabsData[tab.id] = tabData
+    for (const [domain, tabIds] of domainGroups) {
+      if (tabIds.length >= 2) {
+        try {
+          const groupId = await chrome.tabs.group({ tabIds })
+          await chrome.tabGroups.update(groupId, {
+            title: domain,
+            color: colors[colorIndex % colors.length],
+            collapsed: false
+          })
+          groupsCreated++
+          colorIndex++
+          console.log(`[TabAI] Created group for ${domain} with ${tabIds.length} tabs`)
+        } catch (error) {
+          console.error(`[TabAI] Failed to create group for ${domain}:`, error)
+        }
+      }
     }
     
-    await chrome.storage.local.set({ tabsData })
+    const message = groupsCreated > 0 
+      ? `Successfully organized ${tabs.length} tabs into ${groupsCreated} groups`
+      : 'No groups created (need at least 2 tabs from the same domain)'
+    
+    return {
+      success: true,
+      message,
+      groupsCreated,
+      tabsProcessed: tabs.length
+    }
+    
   } catch (error) {
-    console.error("Error analyzing tab:", error)
+    console.error('[TabAI] Organization failed:', error)
+    throw error
   }
 }
 
-// Enhanced category detection with better domain matching
-async function getCategoryForDomain(domain: string): Promise<string> {
-  const result = await chrome.storage.sync.get(["categories", "categoryMapping"])
-  const categories: Category[] = result.categories || DEFAULT_CATEGORIES
-  const categoryMapping: CategoryMapping = result.categoryMapping || {}
-  
-  // Normalize domain for better matching
-  const normalizedDomain = domain.toLowerCase().replace(/^www\./, '')
-  
-  // Check explicit mapping first - this takes precedence over everything
-  if (categoryMapping[normalizedDomain]) {
-    return categoryMapping[normalizedDomain]
-  }
-  
-  // Check for exact domain matches first
-  for (const category of categories) {
-    if (category.domains.some(d => normalizedDomain === d.toLowerCase())) {
-      return category.id
-    }
-  }
-  
-  // Then check for subdomain/partial matches
-  for (const category of categories) {
-    if (category.domains.some(d => normalizedDomain.includes(d.toLowerCase()))) {
-      return category.id
-    }
-  }
-  
-  // Check keywords in domain
-  for (const category of categories) {
-    if (category.keywords.some(keyword => normalizedDomain.includes(keyword.toLowerCase()))) {
-      return category.id
-    }
-  }
-  
-  return "other" // Always return lowercase to match DEFAULT_CATEGORIES
-}
-
-// Update tab access time with error handling
-async function updateTabAccessTime(tab: chrome.tabs.Tab) {
-  if (!tab.id) return
-  
-  try {
-    const result = await chrome.storage.local.get("tabsData")
-    const tabsData = result.tabsData || {}
-    
-    if (tabsData[tab.id]) {
-      tabsData[tab.id].lastAccessed = Date.now()
-      await chrome.storage.local.set({ tabsData })
-    }
-  } catch (error) {
-    console.error("Error updating tab access time:", error)
-  }
-}
-
-// Check if a domain has been explicitly assigned by user
-async function isUserAssignedCategory(domain: string): Promise<boolean> {
-  const result = await chrome.storage.sync.get(["categoryMapping"])
-  const categoryMapping = result.categoryMapping || {}
-  const normalizedDomain = domain.toLowerCase().replace(/^www\./, '')
-  return normalizedDomain in categoryMapping
-}
-
-// Handle messages from popup
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "getTabsAnalysis") {
-    getTabsAnalysis().then(sendResponse)
-    return true
-  }
-  
-  if (request.action === "smartOrganize") {
-    smartOrganizeTabs(request.config).then(sendResponse)
-    return true
-  }
-  
-  if (request.action === "undoOrganize") {
-    undoLastOrganize().then(sendResponse)
-    return true
-  }
-  
-  if (request.action === "getCategoryForDomain") {
-    getCategoryForDomain(request.domain).then(sendResponse)
-    return true
-  }
-  
-  if (request.action === "findDuplicates") {
-    findDuplicateTabs().then(sendResponse)
-    return true
-  }
-  
-  if (request.action === "testGrouping") {
-    // Handled by background-debug.ts
-    return false
-  }
-})
-
-// Get comprehensive tabs analysis
+// Get tabs analysis
 async function getTabsAnalysis() {
-  const tabs = await chrome.tabs.query({})
-  const result = await chrome.storage.local.get("tabsData")
-  const tabsData = result.tabsData || {}
-  
-  const analysis = {
-    totalTabs: tabs.length,
-    categoryCounts: {} as Record<string, number>,
-    duplicates: [] as any[],
-    memoryUsage: 0,
-    suggestions: [] as any[]
-  }
-  
-  // Count categories
-  tabs.forEach(tab => {
-    if (tab.id && tabsData[tab.id]) {
-      const category = tabsData[tab.id].category || "other"
-      analysis.categoryCounts[category] = (analysis.categoryCounts[category] || 0) + 1
+  try {
+    const tabs = await chrome.tabs.query({ currentWindow: true })
+    
+    // Count by domain
+    const domainCounts: Record<string, number> = {}
+    const categoryCounts: Record<string, number> = {
+      work: 0,
+      productivity: 0,
+      entertainment: 0,
+      social: 0,
+      uncategorized: 0
     }
-  })
-  
-  // Find duplicates
-  const urlCounts = {} as Record<string, chrome.tabs.Tab[]>
-  tabs.forEach(tab => {
-    if (tab.url) {
-      const normalizedUrl = tab.url.replace(/\/$/, "") // Remove trailing slash
+    
+    for (const tab of tabs) {
+      if (!tab.url) continue
+      
+      // Handle new tabs
+      if (tab.url === 'chrome://newtab/' || 
+          tab.url === 'edge://newtab/' ||
+          tab.url === 'about:blank' ||
+          tab.url === 'about:newtab' ||
+          tab.url.startsWith('chrome://newtab') ||
+          tab.url.startsWith('edge://newtab')) {
+        domainCounts['New Tab'] = (domainCounts['New Tab'] || 0) + 1
+        categoryCounts.uncategorized++
+        continue
+      }
+      
+      // Skip other special URLs
+      if (tab.url.startsWith('chrome://') || 
+          tab.url.startsWith('chrome-extension://') ||
+          tab.url.startsWith('edge://')) {
+        continue
+      }
+      
+      try {
+        const url = new URL(tab.url)
+        const domain = url.hostname.replace(/^www\./, '')
+        domainCounts[domain] = (domainCounts[domain] || 0) + 1
+        
+        // Simple categorization
+        if (domain.includes('github') || domain.includes('gitlab')) {
+          categoryCounts.work++
+        } else if (domain.includes('google') || domain.includes('notion')) {
+          categoryCounts.productivity++
+        } else if (domain.includes('youtube') || domain.includes('netflix')) {
+          categoryCounts.entertainment++
+        } else if (domain.includes('facebook') || domain.includes('twitter')) {
+          categoryCounts.social++
+        } else {
+          categoryCounts.uncategorized++
+        }
+      } catch (e) {
+        // Skip invalid URLs
+      }
+    }
+    
+    // Find duplicates by exact URL (not just domain)
+    const urlCounts: Record<string, chrome.tabs.Tab[]> = {}
+    
+    for (const tab of tabs) {
+      if (!tab.url || tab.url.startsWith('chrome-extension://')) continue
+      
+      let normalizedUrl: string
+      
+      // Treat all new tabs as the same
+      if (tab.url === 'chrome://newtab/' || 
+          tab.url === 'edge://newtab/' ||
+          tab.url === 'about:blank' ||
+          tab.url === 'about:newtab' ||
+          tab.url.startsWith('chrome://newtab') ||
+          tab.url.startsWith('edge://newtab')) {
+        normalizedUrl = '__newtab__'
+      } else if (tab.url.startsWith('chrome://') || tab.url.startsWith('edge://')) {
+        // Skip other system pages
+        continue
+      } else {
+        // Normalize URL
+        normalizedUrl = tab.url.replace(/\/$/, '').split('#')[0].split('?')[0]
+      }
+      
       if (!urlCounts[normalizedUrl]) {
         urlCounts[normalizedUrl] = []
       }
       urlCounts[normalizedUrl].push(tab)
     }
-  })
-  
-  Object.entries(urlCounts).forEach(([url, tabList]) => {
-    if (tabList.length > 1) {
-      analysis.duplicates.push({
-        url,
-        count: tabList.length,
-        tabs: tabList
-      })
-    }
-  })
-  
-  // Generate AI suggestions
-  if (analysis.totalTabs > 20) {
-    analysis.suggestions.push({
-      type: "high_tab_count",
-      message: `You have ${analysis.totalTabs} tabs open. Consider closing inactive tabs to improve performance.`,
-      priority: "high"
-    })
-  }
-  
-  if (analysis.duplicates.length > 0) {
-    const totalDuplicates = analysis.duplicates.reduce((sum, d) => sum + d.count - 1, 0)
-    analysis.suggestions.push({
-      type: "duplicates",
-      message: `Found ${totalDuplicates} duplicate tabs that can be closed.`,
-      priority: "medium"
-    })
-  }
-  
-  return analysis
-}
-
-// Helper function to safely ungroup tabs with batch processing
-async function safeUngroup(tabIds: number[]): Promise<void> {
-  if (!tabIds.length) return
-  
-  // Ungroup tabs in small batches to avoid API limits
-  const batchSize = 10
-  for (let i = 0; i < tabIds.length; i += batchSize) {
-    const batch = tabIds.slice(i, i + batchSize)
-    try {
-      await chrome.tabs.ungroup(batch)
-    } catch (error) {
-      // Some tabs might not be grouped, which is OK
-      console.log(`Some tabs in batch couldn't be ungrouped:`, error)
-    }
-  }
-}
-
-// Helper function to create a tab group with proper error handling
-async function createTabGroup(
-  tabIds: number[], 
-  title: string, 
-  color: chrome.tabGroups.ColorEnum
-): Promise<number | null> {
-  if (!tabIds.length) {
-    console.warn(`Cannot create group "${title}" with 0 tabs`)
-    return null
-  }
-  
-  try {
-    // Filter out any invalid tab IDs
-    const validTabIds = tabIds.filter(id => id > 0)
-    if (!validTabIds.length) return null
     
-    // Create the group
-    const groupId = await chrome.tabs.group({ tabIds: validTabIds })
+    // Convert to duplicates array
+    const duplicates = Object.entries(urlCounts)
+      .filter(([_, tabs]) => tabs.length > 1)
+      .map(([url, tabs]) => ({
+        domain: url === '__newtab__' ? 'New Tab' : new URL(tabs[0].url!).hostname,
+        count: tabs.length,
+        tabs
+      }))
     
-    // Update group properties
-    await chrome.tabGroups.update(groupId, { 
-      title, 
-      color,
-      collapsed: false 
-    })
-    
-    return groupId
-  } catch (error) {
-    console.error(`Failed to create group "${title}":`, error)
-    return null
-  }
-}
-
-// Enhanced smart organize with better error handling and user preferences
-async function smartOrganizeTabs(userConfig?: Partial<SmartOrganizeConfig>) {
-  // Prevent concurrent executions
-  if ((globalThis as any).isOrganizing) {
     return {
-      success: false,
-      groupsCreated: 0,
-      closedDuplicates: 0,
-      suspendedTabs: 0,
-      errors: ['Organization already in progress'],
-      message: '⏳ Organization already in progress',
-      canUndo: false
+      totalTabs: tabs.length,
+      domainCounts,
+      categoryCounts,
+      duplicates
     }
+    
+  } catch (error) {
+    console.error('[TabAI] Analysis failed:', error)
+    throw error
   }
-  
-  (globalThis as any).isOrganizing = true
-  
+}
+
+// Organize tabs by categories with proper ordering
+async function organizeTabsByCategories(categories: any[]) {
+  console.log('[TabAI Background] organizeTabsByCategories called with:', categories?.length, 'categories')
   try {
-    // Small delay to ensure storage sync is complete
-    await new Promise(resolve => setTimeout(resolve, 100))
-    
-    // Get configuration
-    const storedConfig = await chrome.storage.local.get("smartOrganizeConfig")
-    const config: SmartOrganizeConfig = {
-      ...storedConfig.smartOrganizeConfig,
-      ...userConfig
-    }
-    
-    // Initialize undo state
-    const undoState: UndoState = {
-      timestamp: Date.now(),
-      groupIds: [],
-      ungroupedTabs: [],
-      closedTabs: []
-    }
-    
     const tabs = await chrome.tabs.query({ currentWindow: true })
-    const result = await chrome.storage.local.get("tabsData")
-    const tabsData = result.tabsData || {}
+    console.log(`[TabAI Background] Found ${tabs.length} tabs to organize`)
     
-    let closedDuplicates = 0
-    let suspendedTabs = 0
-    let groupsCreated = 0
-    let errors: string[] = []
+    // First, ungroup all tabs
+    const allTabIds = tabs
+      .map(tab => tab.id)
+      .filter((id): id is number => id !== undefined)
     
-    // Step 1: Find and close duplicate tabs if enabled
-    if (config.closeDuplicates) {
-      const duplicates = await findDuplicateTabs()
-      for (const duplicate of duplicates) {
-        try {
-          // Keep the most recently accessed tab
-          const sortedTabs = duplicate.tabs.sort((a, b) => {
-            const aData = tabsData[a.id!]
-            const bData = tabsData[b.id!]
-            const aTime = aData?.lastAccessed || 0
-            const bTime = bData?.lastAccessed || 0
-            return config.prioritizeRecent ? bTime - aTime : aTime - bTime
-          })
-          
-          // Close all but the first tab
-          for (let i = 1; i < sortedTabs.length; i++) {
-            if (sortedTabs[i].id) {
-              undoState.closedTabs.push({
-                url: sortedTabs[i].url || '',
-                title: sortedTabs[i].title || ''
-              })
-              await chrome.tabs.remove(sortedTabs[i].id)
-              closedDuplicates++
-            }
-          }
-        } catch (error) {
-          console.error("Error closing duplicate:", error)
-          errors.push(`Failed to close duplicate: ${error}`)
-        }
+    if (allTabIds.length > 0) {
+      try {
+        await chrome.tabs.ungroup(allTabIds)
+        console.log('[TabAI] Ungrouped all tabs')
+      } catch (e) {
+        console.log('[TabAI] Some tabs were already ungrouped')
       }
     }
     
-    // Step 2: Re-query tabs after closing duplicates
-    const remainingTabs = await chrome.tabs.query({ currentWindow: true })
+    // Get saved category mappings
+    const { categoryMapping = {} } = await chrome.storage.sync.get(['categoryMapping'])
+    console.log('[TabAI Background] Category mappings:', categoryMapping)
     
-    // Step 3: Save current grouping state for undo
-    const existingGroupIds = new Set<number>()
-    for (const tab of remainingTabs) {
-      if (tab.groupId && tab.groupId !== chrome.tabGroups.TAB_GROUP_ID_NONE) {
-        existingGroupIds.add(tab.groupId)
-        if (tab.id) undoState.ungroupedTabs.push(tab.id)
-      }
-    }
-    
-    // Step 4: Ungroup all existing tabs first to ensure clean grouping
-    console.log('[DEBUG] Existing group IDs to ungroup:', Array.from(existingGroupIds))
-    
-    // Use safe ungrouping function with batch processing
-    const allTabIds = remainingTabs.map(t => t.id).filter(id => id !== undefined) as number[]
-    await safeUngroup(allTabIds)
-    console.log('[DEBUG] Ungrouped all tabs successfully')
-    
-    // Step 5: Enhanced project detection with more platforms
-    const projectPatterns = [
-      { pattern: /github\.com\/([^\/]+)\/([^\/]+)/, prefix: 'GH' },
-      { pattern: /gitlab\.com\/([^\/]+)\/([^\/]+)/, prefix: 'GL' },
-      { pattern: /bitbucket\.org\/([^\/]+)\/([^\/]+)/, prefix: 'BB' },
-      { pattern: /codepen\.io\/([^\/]+)\/pen\/([^\/]+)/, prefix: 'CP' },
-      { pattern: /codesandbox\.io\/s\/([^\/]+)/, prefix: 'CS' },
-      { pattern: /stackblitz\.com\/edit\/([^\/]+)/, prefix: 'SB' },
-      { pattern: /replit\.com\/@([^\/]+)\/([^\/]+)/, prefix: 'RP' }
-    ]
-    
-    // Step 6: Analyze tabs and group by smart criteria
+    // Group tabs by category
     const categoryGroups = new Map<string, number[]>()
-    const projectGroups = new Map<string, { tabs: number[], confidence: number }>()
-    const processedTabs = new Set<number>()
     
-    // First pass: Identify project tabs
-    for (const tab of remainingTabs) {
+    for (const tab of tabs) {
       if (!tab.id || !tab.url) continue
       
+      // Default to uncategorized
+      let categoryId = 'uncategorized'
+      
+      // Skip chrome:// and edge:// URLs but keep chrome-extension://
+      if (tab.url.startsWith('chrome://') || tab.url.startsWith('edge://')) {
+        // These system URLs will remain ungrouped
+        continue
+      }
+      
       try {
-        const url = new URL(tab.url)
-        const domain = url.hostname.toLowerCase().replace(/^www\./, '')
+        const domain = new URL(tab.url).hostname.replace(/^www\./, '')
         
-        // Check if user has explicitly assigned a category
-        const isUserAssigned = await isUserAssignedCategory(domain)
-        
-        // Project detection only if not user-assigned and respectUserCategories is true
-        if (!isUserAssigned || !config.respectUserCategories) {
-          for (const { pattern, prefix } of projectPatterns) {
-            const match = tab.url.match(pattern)
-            if (match) {
-              const projectKey = `${prefix}:${match[1]}/${match[2] || match[1]}`
-              if (!projectGroups.has(projectKey)) {
-                projectGroups.set(projectKey, { tabs: [], confidence: 0.95 })
-              }
-              projectGroups.get(projectKey)!.tabs.push(tab.id)
-              processedTabs.add(tab.id)
+        // First check if user has assigned a category to this specific domain
+        if (categoryMapping[domain]) {
+          categoryId = categoryMapping[domain]
+          console.log(`[TabAI Background] Found user mapping for ${domain}: ${categoryId}`)
+        } else {
+          // Then check category domains
+          for (const category of categories) {
+            if (category.domains.some((d: string) => {
+              const catDomain = d.toLowerCase()
+              return domain === catDomain || domain.endsWith(`.${catDomain}`)
+            })) {
+              categoryId = category.id
               break
             }
           }
         }
       } catch (error) {
-        console.error("Error processing tab for projects:", error)
+        console.error(`[TabAI] Error parsing URL: ${tab.url}`)
+        // For invalid URLs, treat as uncategorized
+        categoryId = 'uncategorized'
       }
+      
+      if (!categoryGroups.has(categoryId)) {
+        categoryGroups.set(categoryId, [])
+      }
+      categoryGroups.get(categoryId)!.push(tab.id)
     }
     
-    // Second pass: Regular category grouping for non-project tabs
-    for (const tab of remainingTabs) {
-      if (!tab.id || !tab.url || processedTabs.has(tab.id)) continue
-      
-      // Skip chrome:// and other special URLs
-      if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
-        continue
-      }
+    // Create groups in category order
+    let groupsCreated = 0
+    for (const category of categories) {
+      const tabIds = categoryGroups.get(category.id)
+      if (!tabIds || tabIds.length === 0) continue
       
       try {
-        const url = new URL(tab.url)
-        const domain = url.hostname
-        
-        // Get category with latest mapping
-        const category = await getCategoryForDomain(domain)
-        
-        // Update tabsData with the latest category
-        if (!tabsData[tab.id]) {
-          await analyzeAndCategorizeTab(tab)
-        } else if (tabsData[tab.id].category !== category) {
-          tabsData[tab.id].category = category
-          await chrome.storage.local.set({ tabsData })
-        }
-        
-        // Ensure category is valid
-        const finalCategory = category || 'other'
-        
-        if (!categoryGroups.has(finalCategory)) {
-          categoryGroups.set(finalCategory, [])
-        }
-        categoryGroups.get(finalCategory)!.push(tab.id)
-        processedTabs.add(tab.id)
-        
-      } catch (error) {
-        console.error("Error categorizing tab:", error)
-      }
-    }
-    
-    // Step 7: Ensure all remaining tabs are in "other" category if not processed
-    // This must happen BEFORE smart grouping to ensure "other" category gets populated
-    const unprocessedTabs = remainingTabs.filter(tab => 
-      tab.id && !processedTabs.has(tab.id) && tab.url && 
-      !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://')
-    )
-    
-    // Add unprocessed tabs to "other" category first
-    for (const tab of unprocessedTabs) {
-      if (!tab.id) continue
-      
-      // Get the category one more time to be sure
-      try {
-        const url = new URL(tab.url!)
-        const domain = url.hostname
-        const category = await getCategoryForDomain(domain)
-        
-        // If it's truly "other", add it to the other category group
-        if (category === 'other') {
-          if (!categoryGroups.has('other')) {
-            categoryGroups.set('other', [])
-          }
-          categoryGroups.get('other')!.push(tab.id)
-          processedTabs.add(tab.id)
-        }
-      } catch (error) {
-        // If we can't determine category, add to other
-        if (!categoryGroups.has('other')) {
-          categoryGroups.set('other', [])
-        }
-        categoryGroups.get('other')!.push(tab.id)
-        processedTabs.add(tab.id)
-      }
-    }
-    
-    // Step 8: Apply smart grouping if enabled (after other categorization)
-    let smartGroups: any[] = []
-    if (config.enableSmartGroups) {
-      // Get tabs that haven't been processed yet (excludes "other" tabs now)
-      const tabsForSmartGrouping = remainingTabs.filter(tab => 
-        tab.id && !processedTabs.has(tab.id) && tab.url && 
-        !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://')
-      )
-      
-      if (tabsForSmartGrouping.length > 0) {
-        smartGroups = detectSmartGroups(tabsForSmartGrouping)
-        
-        // Filter smart groups by minimum size and confidence
-        smartGroups = smartGroups.filter(group => 
-          group.tabIds.length >= config.minGroupSize && group.confidence >= 0.6
-        )
-        
-        // Mark smart group tabs as processed
-        smartGroups.forEach(group => {
-          group.tabIds.forEach(tabId => processedTabs.add(tabId))
+        const groupId = await chrome.tabs.group({ tabIds })
+        await chrome.tabGroups.update(groupId, {
+          title: category.name,
+          color: category.color,
+          collapsed: false
         })
-      }
-    }
-    
-    // Step 9: Create tab groups
-    const categoriesResult = await chrome.storage.sync.get(["categories"])
-    const categories: Category[] = categoriesResult.categories || DEFAULT_CATEGORIES
-    const categoryMap = new Map(categories.map(c => [c.id, c]))
-    
-    // Create category groups
-    console.log('[DEBUG] Category groups:', Array.from(categoryGroups.entries()).map(([cat, tabs]) => ({ 
-      category: cat, 
-      count: tabs.length,
-      tabIds: tabs
-    })))
-    
-    for (const [categoryId, tabIds] of categoryGroups) {
-      // Group all categories with tabs, including "Other"
-      if (tabIds.length > 0) {
-        const category = categoryMap.get(categoryId)
-        const groupTitle = category?.name || (categoryId === 'other' ? 'Other' : categoryId.charAt(0).toUpperCase() + categoryId.slice(1))
-        const groupColor = (category?.color || "grey") as chrome.tabGroups.ColorEnum
         
-        const groupId = await createTabGroup(tabIds, groupTitle, groupColor)
-        if (groupId !== null) {
-          groupsCreated++
-          undoState.groupIds.push(groupId)
-          console.log(`[DEBUG] Successfully grouped ${tabIds.length} tabs as "${groupTitle}"`)
-        } else {
-          errors.push(`Failed to group ${categoryId} tabs`)
-        }
-      }
-    }
-    
-    // Create project groups
-    const projectColors: chrome.tabGroups.ColorEnum[] = ["blue", "cyan", "green", "yellow", "orange", "red", "pink", "purple"]
-    let colorIndex = 0
-    
-    for (const [projectKey, { tabs: tabIds, confidence }] of projectGroups) {
-      const shouldGroup = config.groupSingleTabs || tabIds.length >= config.minGroupSize
-      
-      if (shouldGroup && tabIds.length > 0) {
-        const [prefix, projectName] = projectKey.split(':')
-        const groupTitle = `📁 ${projectName}`
-        const groupColor = projectColors[colorIndex % projectColors.length]
+        // Move group to maintain order
+        await chrome.tabGroups.move(groupId, { index: -1 })
         
-        const groupId = await createTabGroup(tabIds, groupTitle, groupColor)
-        if (groupId !== null) {
-          groupsCreated++
-          undoState.groupIds.push(groupId)
-          colorIndex++
-        } else {
-          errors.push(`Failed to group project ${projectKey}`)
-        }
-      }
-    }
-    
-    // Create smart groups
-    for (const smartGroup of smartGroups) {
-      const groupColor = projectColors[colorIndex % projectColors.length]
-      const groupId = await createTabGroup(smartGroup.tabIds, smartGroup.name, groupColor)
-      
-      if (groupId !== null) {
         groupsCreated++
-        undoState.groupIds.push(groupId)
-        colorIndex++
-      } else {
-        errors.push(`Failed to create smart group ${smartGroup.name}`)
-      }
-    }
-    
-    // Save undo state
-    lastUndoState = undoState
-    
-    // Generate summary message
-    const summary = []
-    if (groupsCreated > 0) summary.push(`${groupsCreated} groups created`)
-    if (closedDuplicates > 0) summary.push(`${closedDuplicates} duplicates closed`)
-    if (errors.length > 0) summary.push(`${errors.length} errors`)
-    
-    return { 
-      success: errors.length === 0, 
-      groupsCreated,
-      closedDuplicates,
-      suspendedTabs,
-      errors,
-      message: summary.length > 0 
-        ? `✨ ${summary.join(', ')}`
-        : '✨ Tabs are already well organized!',
-      canUndo: true
-    }
-  } catch (error) {
-    console.error("Critical error in smartOrganizeTabs:", error)
-    return {
-      success: false,
-      groupsCreated: 0,
-      closedDuplicates: 0,
-      suspendedTabs: 0,
-      errors: [`Critical error: ${error}`],
-      message: '❌ Failed to organize tabs',
-      canUndo: false
-    }
-  } finally {
-    (globalThis as any).isOrganizing = false
-  }
-}
-
-// Undo last organize operation
-async function undoLastOrganize() {
-  if (!lastUndoState) {
-    return {
-      success: false,
-      message: "No organize operation to undo"
-    }
-  }
-  
-  try {
-    // Ungroup all tabs that were grouped
-    for (const tabId of lastUndoState.ungroupedTabs) {
-      try {
-        await chrome.tabs.ungroup([tabId])
+        console.log(`[TabAI] Created group for ${category.name} with ${tabIds.length} tabs`)
       } catch (error) {
-        console.error("Error ungrouping tab:", error)
+        console.error(`[TabAI] Failed to create group for ${category.name}:`, error)
       }
     }
     
-    // Restore closed tabs
-    for (const closedTab of lastUndoState.closedTabs) {
-      try {
-        await chrome.tabs.create({
-          url: closedTab.url,
-          active: false
-        })
-      } catch (error) {
-        console.error("Error restoring tab:", error)
-      }
-    }
-    
-    lastUndoState = null
+    const message = groupsCreated > 0 
+      ? `Successfully organized tabs into ${groupsCreated} category groups`
+      : 'No groups created'
     
     return {
       success: true,
-      message: "✅ Organize operation undone"
+      message,
+      groupsCreated,
+      tabsProcessed: tabs.length
     }
+    
   } catch (error) {
-    console.error("Error undoing organize:", error)
-    return {
-      success: false,
-      message: "Failed to undo organize operation"
-    }
+    console.error('[TabAI] Category organization failed:', error)
+    throw error
   }
 }
 
-// Enhanced duplicate detection with multi-factor similarity
-async function findDuplicateTabs() {
-  const tabs = await chrome.tabs.query({})
-  const duplicates = [] as any[]
-  const processedTabs = new Set<number>()
-  
-  // Normalize URLs for better duplicate detection
-  const normalizeUrl = (url: string): string => {
-    try {
-      const parsed = new URL(url)
-      // Remove common tracking parameters
-      const trackingParams = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'fbclid', 'gclid', 'ref', 'source']
-      trackingParams.forEach(param => parsed.searchParams.delete(param))
-      
-      // Remove hash fragments for comparison
-      parsed.hash = ''
-      
-      // Normalize the URL
-      let normalized = parsed.toString()
-        .replace(/\/$/, '') // Remove trailing slash
-        .replace(/^https?:\/\/(www\.)?/, 'https://') // Normalize protocol and www
-        .toLowerCase()
-      
-      return normalized
-    } catch {
-      return url.toLowerCase()
-    }
-  }
-  
-  // Calculate string similarity (Jaccard similarity)
-  const calculateSimilarity = (str1: string, str2: string): number => {
-    if (!str1 || !str2) return 0
-    
-    const tokens1 = new Set(str1.toLowerCase().split(/\s+/))
-    const tokens2 = new Set(str2.toLowerCase().split(/\s+/))
-    
-    const intersection = new Set([...tokens1].filter(x => tokens2.has(x)))
-    const union = new Set([...tokens1, ...tokens2])
-    
-    return union.size === 0 ? 0 : intersection.size / union.size
-  }
-  
-  // Multi-factor duplicate detection
-  for (let i = 0; i < tabs.length; i++) {
-    if (processedTabs.has(tabs[i].id!) || !tabs[i].url || tabs[i].url.startsWith('chrome://')) {
-      continue
-    }
-    
-    const similarTabs = [tabs[i]]
-    const baseUrl = normalizeUrl(tabs[i].url!)
-    const baseTitle = tabs[i].title || ''
-    
-    for (let j = i + 1; j < tabs.length; j++) {
-      if (processedTabs.has(tabs[j].id!) || !tabs[j].url || tabs[j].url.startsWith('chrome://')) {
-        continue
-      }
-      
-      const compareUrl = normalizeUrl(tabs[j].url!)
-      const compareTitle = tabs[j].title || ''
-      
-      // Check URL similarity
-      const urlMatch = baseUrl === compareUrl
-      
-      // Check title similarity (for dynamic pages with same base URL)
-      const titleSimilarity = calculateSimilarity(baseTitle, compareTitle)
-      
-      // Check domain match with different paths (for related pages)
-      const baseDomain = new URL(tabs[i].url!).hostname
-      const compareDomain = new URL(tabs[j].url!).hostname
-      const domainMatch = baseDomain === compareDomain
-      
-      // Consider as duplicate if:
-      // 1. Exact URL match OR
-      // 2. Same domain with very similar titles (>0.8 similarity) OR
-      // 3. Same domain with identical title
-      if (urlMatch || (domainMatch && titleSimilarity > 0.8) || (domainMatch && baseTitle === compareTitle)) {
-        similarTabs.push(tabs[j])
-        processedTabs.add(tabs[j].id!)
-      }
-    }
-    
-    if (similarTabs.length > 1) {
-      processedTabs.add(tabs[i].id!)
-      duplicates.push({
-        url: tabs[i].url,
-        title: tabs[i].title,
-        tabs: similarTabs,
-        count: similarTabs.length,
-        type: similarTabs.every(t => normalizeUrl(t.url!) === baseUrl) ? 'exact' : 'similar'
-      })
-    }
-  }
-  
-  return duplicates
+console.log('[TabAI] Background script initialized')
+
+// Make debug tools available globally
+if (typeof globalThis !== 'undefined') {
+  (globalThis as any).TabTrackerDebug = TabTrackerDebug
 }
