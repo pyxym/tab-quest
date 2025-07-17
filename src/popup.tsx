@@ -300,9 +300,9 @@ function IndexPopup() {
       if (result.success) {
         // Create detailed insight about AI organization
         let description = result.message
-        if (result.details && result.details.length > 0) {
+        if ((result as any).details && (result as any).details.length > 0) {
           description += '\n\nAI Classification Summary:'
-          result.details.forEach((group: any) => {
+          ;(result as any).details.forEach((group: any) => {
             description += `\n• ${group.category}: ${group.tabCount} tabs (avg confidence: ${group.avgConfidence})`
           })
         }
@@ -317,12 +317,12 @@ function IndexPopup() {
         })
         
         // Add learning insight
-        if (result.aiInsights?.learningEnabled) {
+        if ((result as any).aiInsights?.learningEnabled) {
           addInsight({
             id: `ai-learning-${Date.now()}`,
             type: "pattern",
             title: "🧠 AI is learning your preferences",
-            description: `AI has learned from ${result.aiInsights.totalDomains || 0} domains. The more you use it, the smarter it gets!`,
+            description: `AI has learned from ${(result as any).aiInsights.totalDomains || 0} domains. The more you use it, the smarter it gets!`,
             priority: "low",
             timestamp: Date.now() + 1000
           })
