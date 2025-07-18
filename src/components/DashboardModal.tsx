@@ -3,6 +3,7 @@ import { ProductivityScore } from "./ProductivityScore"
 import { TabTracker } from "../utils/tabTracker"
 import { SimpleBarChart } from "./SimpleBarChart"
 import { SimpleLineChart } from "./SimpleLineChart"
+import { storageUtils } from "../utils/storage"
 
 interface DashboardModalProps {
   onClose: () => void
@@ -50,8 +51,7 @@ export const DashboardModal: React.FC<DashboardModalProps> = ({ onClose }) => {
       setTotalTabs(allTabs.length)
 
       // Get categories from storage
-      const categoriesResult = await chrome.storage.sync.get(["categories"])
-      const categories = categoriesResult.categories || []
+      const categories = await storageUtils.getCategories()
       
       // Get usage data from TabTracker
       const { tabUsageData, todayStats, dailyStats } = await TabTracker.getUsageData()

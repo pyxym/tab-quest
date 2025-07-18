@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { AILogo } from "../components/AILogo"
 import { ProductivityScore } from "../components/ProductivityScore"
+import { storageUtils } from "../utils/storage"
 import "../../style.css"
 
 interface TabData {
@@ -44,12 +45,10 @@ function Dashboard() {
     setTotalTabs(allTabs.length)
 
     // Get tabs data from storage
-    const result = await chrome.storage.local.get("tabsData")
-    const tabsData = result.tabsData || {}
+    const tabsData = (await storageUtils.getItem<any>('local:tabsData')) || {}
     
     // Get categories from storage
-    const categoriesResult = await chrome.storage.sync.get(["categories"])
-    const categories = categoriesResult.categories || []
+    const categories = await storageUtils.getCategories()
     
     // Convert to array and analyze
     const tabsArray = Object.values(tabsData) as TabData[]

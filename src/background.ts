@@ -1,6 +1,7 @@
 export {}
 import { TabTracker } from './utils/tabTracker'
 import { TabTrackerDebug } from './utils/debugTabTracker'
+import { storageUtils } from './utils/storage'
 
 // Suppress external extension errors
 if (typeof window !== 'undefined') {
@@ -300,7 +301,7 @@ async function organizeTabsByCategories(categories: any[]) {
     }
     
     // Get saved category mappings
-    const { categoryMapping = {} } = await chrome.storage.sync.get(['categoryMapping'])
+    const categoryMapping = await storageUtils.getCategoryMapping()
     console.log('[TabAI Background] Category mappings:', categoryMapping)
     
     // Group tabs by category

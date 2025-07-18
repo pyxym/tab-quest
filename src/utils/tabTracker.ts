@@ -1,4 +1,5 @@
 // Tab usage tracking utility
+import { storageUtils } from './storage'
 interface TabUsageData {
   url: string
   domain: string
@@ -147,7 +148,8 @@ export class TabTracker {
       console.log('[TabTracker] Processing domain:', domain)
       
       // Get category using the same logic as CategoryStore
-      const { categoryMapping = {}, categories = [] } = await chrome.storage.sync.get(['categoryMapping', 'categories'])
+      const categoryMapping = await storageUtils.getCategoryMapping()
+      const categories = await storageUtils.getCategories()
       
       // First check user-assigned category
       let category = categoryMapping[domain]
@@ -173,7 +175,7 @@ export class TabTracker {
       console.log('[TabTracker] Category for domain:', domain, '->', category)
 
       // Get existing data
-      const { tabUsageData = {} } = await chrome.storage.local.get(['tabUsageData'])
+      const tabUsageData = await storageUtils.getTabUsageData()
       console.log('[TabTracker] Current tabUsageData keys:', Object.keys(tabUsageData))
       
       const key = domain // Use domain as key for aggregation
@@ -197,7 +199,7 @@ export class TabTracker {
       existing.category = category // Update category if changed
 
       tabUsageData[key] = existing
-      await chrome.storage.local.set({ tabUsageData })
+      await storageUtils.setTabUsageData(tabUsageData)
       
       console.log('[TabTracker] Updated usage data for', domain, '- Total time:', oldTimeSpent, '->', existing.totalTimeSpent)
 
@@ -219,7 +221,7 @@ export class TabTracker {
       }
 
       const domain = new URL(tab.url).hostname.replace(/^www\./, '')
-      const { tabUsageData = {} } = await chrome.storage.local.get(['tabUsageData'])
+      const tabUsageData = await storageUtils.getTabUsageData()
       
       const key = domain
       if (tabUsageData[key]) {
@@ -230,7 +232,7 @@ export class TabTracker {
         console.log('[TabTracker] No existing data for domain:', domain, '- will be created on first update')
       }
       
-      await chrome.storage.local.set({ tabUsageData })
+      await storageUtils.setTabUsageData(tabUsageData)
     } catch (error) {
       console.error('[TabTracker] Error incrementing tab access:', error)
     }
@@ -241,7 +243,7 @@ export class TabTracker {
     console.log('[TabTracker] Updating daily stats - category:', category, 'domain:', domain, 'time:', timeSpent)
     
     const today = new Date().toISOString().split('T')[0]
-    const { dailyStats = {} } = await chrome.storage.local.get(['dailyStats'])
+    const dailyStats = await storageUtils.getDailyStats()
     
     if (!dailyStats[today]) {
       console.log('[TabTracker] Creating new daily stats for:', today)
@@ -275,14 +277,15 @@ export class TabTracker {
     }
 
     dailyStats[today] = todayStats
-    await chrome.storage.local.set({ dailyStats })
+    await storageUtils.setDailyStats(dailyStats)
     
     console.log('[TabTracker] Daily stats updated - Total time today:', oldTotalTime, '->', todayStats.totalTimeSpent)
   }
 
   // Get usage data for dashboard
   static async getUsageData() {
-    const { tabUsageData = {}, dailyStats = {} } = await chrome.storage.local.get(['tabUsageData', 'dailyStats'])
+    const tabUsageData = await storageUtils.getTabUsageData()
+    const dailyStats = await storageUtils.getDailyStats()
     
     // Get last 7 days of data
     const last7Days = []
@@ -309,7 +312,7 @@ export class TabTracker {
 
   // Clean up old data (keep last 30 days)
   static async cleanupOldData() {
-    const { dailyStats = {} } = await chrome.storage.local.get(['dailyStats'])
+    const dailyStats = await storageUtils.getDailyStats()
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
     
@@ -320,6 +323,6 @@ export class TabTracker {
       }
     })
     
-    await chrome.storage.local.set({ dailyStats: cleaned })
+    await storageUtils.setDailyStats(cleaned)
   }
 }

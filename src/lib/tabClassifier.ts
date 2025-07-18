@@ -1,6 +1,7 @@
 // AI-powered tab classification system
 import type { TabInfo } from '../store/tabStore'
 import type { Category } from '../types/category'
+import { storageUtils } from '../utils/storage'
 
 export interface TabContext {
   tab: TabInfo
@@ -374,19 +375,19 @@ export class TabClassifier {
   
   // Helper methods
   private async getUserMapping(domain: string): Promise<string | null> {
-    const result = await chrome.storage.sync.get(['categoryMapping'])
-    const mapping = result.categoryMapping || {}
+    const mapping = await storageUtils.getCategoryMapping()
     return mapping[domain] || null
   }
   
   private async loadUserPatterns() {
     try {
-      const result = await chrome.storage.local.get(['userPatterns', 'categoryHistory'])
+      const userPatterns = await storageUtils.getUserPatterns()
+      const categoryHistory = await storageUtils.getCategoryHistory()
       
-      if (result.userPatterns) {
+      if (userPatterns) {
         // Convert stored data back to Maps
         this.userPatterns = new Map(
-          Object.entries(result.userPatterns).map(([domain, pattern]: [string, any]) => [
+          Object.entries(userPatterns).map(([domain, pattern]: [string, any]) => [
             domain,
             {
               ...pattern,
@@ -398,8 +399,8 @@ export class TabClassifier {
         )
       }
       
-      if (result.categoryHistory) {
-        this.categoryHistory = new Map(Object.entries(result.categoryHistory))
+      if (categoryHistory) {
+        this.categoryHistory = new Map(Object.entries(categoryHistory))
       }
     } catch (error) {
       console.error('Failed to load user patterns:', error)
@@ -419,10 +420,8 @@ export class TabClassifier {
         }
       }
       
-      await chrome.storage.local.set({
-        userPatterns: patternsObj,
-        categoryHistory: Object.fromEntries(this.categoryHistory)
-      })
+      await storageUtils.setUserPatterns(patternsObj)
+      await storageUtils.setCategoryHistory(Object.fromEntries(this.categoryHistory))
     } catch (error) {
       console.error('Failed to save user patterns:', error)
     }

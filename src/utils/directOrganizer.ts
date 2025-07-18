@@ -1,4 +1,5 @@
 // Direct tab organization without background script
+import { storageUtils } from './storage'
 export async function organizeTabsDirectly(categories: any[]) {
   try {
     console.log('[TabAI Direct] Starting direct organization...')
@@ -21,7 +22,7 @@ export async function organizeTabsDirectly(categories: any[]) {
     }
     
     // Get saved category mappings
-    const { categoryMapping = {} } = await chrome.storage.sync.get(['categoryMapping'])
+    const categoryMapping = await storageUtils.getCategoryMapping()
     console.log('[TabAI Direct] Category mappings:', categoryMapping)
     
     // Group tabs by category
