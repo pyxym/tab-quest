@@ -94,8 +94,15 @@ export async function organizeTabsUnified(categories: any[]) {
       
       try {
         const groupId = await chrome.tabs.group({ tabIds })
+        // Create abbreviation for category name
+        const abbreviation = category.name
+          .split(' ')
+          .map((word: string) => word.charAt(0).toUpperCase())
+          .join('')
+          .slice(0, 3) // Max 3 characters
+        
         await chrome.tabGroups.update(groupId, {
-          title: category.name,
+          title: abbreviation,
           color: category.color as chrome.tabGroups.ColorEnum,
           collapsed: false
         })

@@ -17,10 +17,18 @@ export default defineConfig({
     permissions: ['tabs', 'storage', 'activeTab', 'tabGroups', 'windows', 'alarms'],
     action: {
       default_popup: 'popup.html',
-      default_icon: 'icon/icon.svg'
+      default_icon: {
+        '16': 'icon/icon16.png',
+        '32': 'icon/icon32.png',
+        '48': 'icon/icon48.png',
+        '128': 'icon/icon128.png'
+      }
     },
     icons: {
-      '128': 'icon/icon.svg'
+      '16': 'icon/icon16.png',
+      '32': 'icon/icon32.png',
+      '48': 'icon/icon48.png',
+      '128': 'icon/icon128.png'
     },
     options_ui: {
       page: 'options.html',

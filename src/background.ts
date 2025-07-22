@@ -137,8 +137,14 @@ async function organizeTabsSimple() {
       if (tabIds.length >= 2) {
         try {
           const groupId = await chrome.tabs.group({ tabIds })
+          // Create abbreviation for domain name
+          const domainParts = domain.split('.')
+          const abbreviation = domainParts[0]
+            .toUpperCase()
+            .slice(0, 3)
+          
           await chrome.tabGroups.update(groupId, {
-            title: domain,
+            title: abbreviation,
             color: colors[colorIndex % colors.length],
             collapsed: false
           })
@@ -286,6 +292,34 @@ async function organizeTabsByCategories(categories: any[]) {
     const tabs = await chrome.tabs.query({ currentWindow: true })
     console.log(`[TabAI Background] Found ${tabs.length} tabs to organize`)
     
+    // Get existing tab groups to check for duplicates
+    const existingGroups = await chrome.tabGroups.query({})
+    console.log('[TabAI] Existing groups:', existingGroups.map(g => g.title))
+    
+    // Remove duplicate groups with same title
+    const groupsToRemove = new Map<string, chrome.tabGroups.TabGroup[]>()
+    existingGroups.forEach(group => {
+      const title = group.title || ''
+      if (!groupsToRemove.has(title)) {
+        groupsToRemove.set(title, [])
+      }
+      groupsToRemove.get(title)!.push(group)
+    })
+    
+    // Keep only the first group of each title, remove duplicates
+    for (const [title, groups] of groupsToRemove) {
+      if (groups.length > 1) {
+        console.log(`[TabAI] Found ${groups.length} duplicate groups for "${title}", removing extras`)
+        for (let i = 1; i < groups.length; i++) {
+          try {
+            await chrome.tabs.ungroup(await chrome.tabs.query({ groupId: groups[i].id }))
+          } catch (e) {
+            console.log(`[TabAI] Failed to remove duplicate group: ${e}`)
+          }
+        }
+      }
+    }
+    
     // First, ungroup all tabs
     const allTabIds = tabs
       .map(tab => tab.id)
@@ -358,8 +392,15 @@ async function organizeTabsByCategories(categories: any[]) {
       
       try {
         const groupId = await chrome.tabs.group({ tabIds })
+        // Create abbreviation for category name
+        const abbreviation = category.name
+          .split(' ')
+          .map((word: string) => word.charAt(0).toUpperCase())
+          .join('')
+          .slice(0, 3) // Max 3 characters
+        
         await chrome.tabGroups.update(groupId, {
-          title: category.name,
+          title: abbreviation,
           color: category.color,
           collapsed: false
         })

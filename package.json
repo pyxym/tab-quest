@@ -1,9 +1,9 @@
 {
   "name": "tabai",
-  "displayName": "TabAI - AI-Powered Tab Assistant",
+  "displayName": "TabAI - Tab Assistant",
   "version": "0.0.1",
   "description": "브라우저 탭 관리",
-  "author": "TabAI",
+  "author": "YonYonWare",
   "license": "MIT",
   "scripts": {
     "dev": "wxt",
