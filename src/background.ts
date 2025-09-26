@@ -312,7 +312,16 @@ async function organizeTabsByCategories(categories: any[]) {
         console.log(`[TabQuest] Found ${groups.length} duplicate groups for "${title}", removing extras`)
         for (let i = 1; i < groups.length; i++) {
           try {
-            await chrome.tabs.ungroup(await chrome.tabs.query({ groupId: groups[i].id }))
+            const groupId = groups[i].id
+            if (groupId !== undefined) {
+              const tabsInGroup = await chrome.tabs.query({ groupId })
+              if (tabsInGroup.length > 0) {
+                const tabIds = tabsInGroup.map(tab => tab.id).filter((id): id is number => id !== undefined)
+                if (tabIds.length > 0) {
+                  await chrome.tabs.ungroup(tabIds)
+                }
+              }
+            }
           } catch (e) {
             console.log(`[TabQuest] Failed to remove duplicate group: ${e}`)
           }
