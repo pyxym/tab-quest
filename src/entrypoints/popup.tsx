@@ -14,7 +14,7 @@ import { useCategoryStore } from "../store/categoryStore"
 import { calculateProductivityScore, findDuplicates } from "../utils/tabAnalyzer"
 import { organizeTabsUnified } from "../utils/unifiedOrganizer"
 import { storageUtils } from "../utils/storage"
-import "../assets/styles/popup.css"
+import "../styles/popup.css"
 
 function IndexPopup() {
   const { tabs, setTabs } = useTabStore()

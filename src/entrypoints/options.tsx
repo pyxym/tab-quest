@@ -1,6 +1,6 @@
 import React from "react"
 import Dashboard from "../tabs/dashboard"
-import "../assets/styles/options.css"
+import "../styles/options.css"
 
 function OptionsPage() {
   return <Dashboard />
