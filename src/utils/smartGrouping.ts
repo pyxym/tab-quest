@@ -1,12 +1,5 @@
 // Smart grouping algorithms for tabs
 
-interface TabContext {
-  id: number
-  url: string
-  title: string
-  domain: string
-}
-
 interface SmartGroup {
   name: string
   icon: string
@@ -57,17 +50,10 @@ export function detectSmartGroups(tabs: chrome.tabs.Tab[]): SmartGroup[] {
 // Detect search-related tabs (Google + Stack Overflow + GitHub issues)
 function detectSearchContext(tabs: chrome.tabs.Tab[], processed: Set<number>): SmartGroup[] {
   const groups: SmartGroup[] = []
-  const searchPatterns = [
-    { domain: 'google.com', type: 'search' },
-    { domain: 'stackoverflow.com', type: 'solution' },
-    { domain: 'github.com/.*/(issues|discussions)', type: 'discussion' },
-    { domain: 'reddit.com', type: 'discussion' },
-  ]
-  
   // Find all search tabs
   const searchTabs = tabs.filter(tab => {
     if (!tab.url || !tab.id || processed.has(tab.id)) return false
-    return tab.url.includes('google.com/search') || tab.url.includes('stackoverflow.com/questions')
+    return tab.url?.includes('google.com/search') || tab.url?.includes('stackoverflow.com/questions') || false
   })
   
   // Group by search query similarity
@@ -124,7 +110,7 @@ function detectDocumentationContext(tabs: chrome.tabs.Tab[], processed: Set<numb
   
   const docTabs = tabs.filter(tab => {
     if (!tab.url || !tab.id || processed.has(tab.id)) return false
-    return docDomains.some(pattern => tab.url.includes(pattern))
+    return tab.url ? docDomains.some(pattern => tab.url!.includes(pattern)) : false
   })
   
   // Group by technology/framework
@@ -133,7 +119,7 @@ function detectDocumentationContext(tabs: chrome.tabs.Tab[], processed: Set<numb
   docTabs.forEach(tab => {
     if (!tab.id || !tab.title) return
     
-    const tech = extractTechnology(tab.title, tab.url!)
+    const tech = extractTechnology(tab.title, tab.url || '')
     if (tech) {
       if (!techGroups.has(tech)) {
         techGroups.set(tech, [])
@@ -164,7 +150,7 @@ function detectShoppingContext(tabs: chrome.tabs.Tab[], processed: Set<number>):
   
   const shoppingTabs = tabs.filter(tab => {
     if (!tab.url || !tab.id || processed.has(tab.id)) return false
-    return shoppingDomains.some(domain => tab.url.includes(domain))
+    return tab.url ? shoppingDomains.some(domain => tab.url!.includes(domain)) : false
   })
   
   // Group by product search
@@ -204,7 +190,7 @@ function detectResearchContext(tabs: chrome.tabs.Tab[], processed: Set<number>):
   
   const researchTabs = tabs.filter(tab => {
     if (!tab.url || !tab.id || processed.has(tab.id)) return false
-    return researchDomains.some(domain => tab.url.includes(domain))
+    return tab.url ? researchDomains.some(domain => tab.url!.includes(domain)) : false
   })
   
   // Group by topic similarity
@@ -352,7 +338,7 @@ function detectCommunicationContext(tabs: chrome.tabs.Tab[], processed: Set<numb
   
   const commTabs = tabs.filter(tab => {
     if (!tab.url || !tab.id || processed.has(tab.id)) return false
-    return commDomains.some(domain => tab.url.includes(domain))
+    return tab.url ? commDomains.some(domain => tab.url!.includes(domain)) : false
   })
   
   if (commTabs.length > 1) {
@@ -375,16 +361,16 @@ function detectMediaContext(tabs: chrome.tabs.Tab[], processed: Set<number>): Sm
   
   const mediaTabs = tabs.filter(tab => {
     if (!tab.url || !tab.id || processed.has(tab.id)) return false
-    return mediaDomains.some(domain => tab.url.includes(domain))
+    return tab.url ? mediaDomains.some(domain => tab.url!.includes(domain)) : false
   })
   
   // Group by media type
   const videoTabs = mediaTabs.filter(tab => 
-    tab.url!.includes('youtube.com') || tab.url!.includes('netflix.com') || tab.url!.includes('twitch.tv') || tab.url!.includes('vimeo.com')
+    (tab.url && (tab.url.includes('youtube.com') || tab.url.includes('netflix.com') || tab.url.includes('twitch.tv') || tab.url.includes('vimeo.com')))
   )
   
   const audioTabs = mediaTabs.filter(tab => 
-    tab.url!.includes('spotify.com') || tab.url!.includes('soundcloud.com')
+    (tab.url && (tab.url.includes('spotify.com') || tab.url.includes('soundcloud.com')))
   )
   
   if (videoTabs.length > 1) {
@@ -417,7 +403,7 @@ function detectTaskContext(tabs: chrome.tabs.Tab[], processed: Set<number>): Sma
   
   const taskTabs = tabs.filter(tab => {
     if (!tab.url || !tab.id || processed.has(tab.id)) return false
-    return taskDomains.some(domain => tab.url.includes(domain))
+    return tab.url ? taskDomains.some(domain => tab.url!.includes(domain)) : false
   })
   
   if (taskTabs.length > 1) {
