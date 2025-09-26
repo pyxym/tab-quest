@@ -1,11 +1,12 @@
 import { storage } from 'wxt/utils/storage'
+import type { Category } from '../types/category'
 
 // Define storage keys and types
 export interface StorageSchema {
   // Sync storage items
   'sync:categories': Category[]
   'sync:categoryMapping': Record<string, string>
-  
+
   // Local storage items
   'local:tabUsageData': Record<string, any>
   'local:dailyStats': Record<string, any>
@@ -13,17 +14,6 @@ export interface StorageSchema {
   'local:userPatterns': Record<string, any>
   'local:categoryHistory': Record<string, any>
   'local:tabsData': any[]
-}
-
-// Category type definition
-export interface Category {
-  id: string
-  name: string
-  icon: string
-  color: string
-  domains?: string[]
-  keywords?: string[]
-  priority?: number
 }
 
 // Storage utilities
