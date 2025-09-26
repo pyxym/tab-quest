@@ -86,6 +86,24 @@ export const storageUtils = {
     await storage.setItem('local:categoryHistory', history)
   },
   
+  // Generic storage access methods
+  async getItem<T>(key: keyof StorageSchema): Promise<T | null> {
+    return await storage.getItem<T>(key)
+  },
+
+  async setItem<T>(key: keyof StorageSchema, value: T): Promise<void> {
+    await storage.setItem(key, value)
+  },
+
+  // Get tabs data
+  async getTabsData() {
+    return await storage.getItem<any[]>('local:tabsData') || []
+  },
+
+  async setTabsData(data: any[]) {
+    await storage.setItem('local:tabsData', data)
+  },
+
   // Clear all local storage
   async clearLocalStorage() {
     const localKeys = [

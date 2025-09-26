@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react"
 import { AILogo } from "../components/AILogo"
 import { ProductivityScore } from "../components/ProductivityScore"
 import { storageUtils } from "../utils/storage"
-import "../../style.css"
+import "../assets/styles/dashboard.css"
 
 interface TabData {
   id: number

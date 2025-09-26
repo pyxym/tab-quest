@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Dashboard specific styles */
+.dashboard-container {
+  @apply min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-8;
+}
+
+/* AI Card Styles */
+.ai-card {
+  @apply relative overflow-hidden rounded-2xl p-6 transition-all hover:scale-105;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ai-card:hover {
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* AI Gradient Text */
+.ai-gradient-text {
+  @apply bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 bg-clip-text text-transparent;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient 3s ease infinite;
+  background-size: 200% auto;
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Glass morphism effects */
+.glass-main {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-card {
+  @apply p-4 rounded-xl transition-all;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-text {
+  @apply text-gray-800 dark:text-white;
+}
+
+/* Animations */
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+@keyframes blob {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
