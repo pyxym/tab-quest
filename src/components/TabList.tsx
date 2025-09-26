@@ -95,20 +95,20 @@ export const TabList: React.FC<TabListProps> = ({ onClose }) => {
     if (isOrganizing) return
     
     try {
-      console.log('[TabAI] Using unified organization...')
+      console.log('[TabQuest] Using unified organization...')
       setIsOrganizing(true)
       
       // Use the unified organization function
       const result = await organizeTabsUnified(categories)
       
-      console.log('[TabAI] Tab organization complete:', result)
+      console.log('[TabQuest] Tab organization complete:', result)
       
       // Reload tabs after organization
       setTimeout(() => {
         loadTabs()
       }, 500)
     } catch (error) {
-      console.error('[TabAI] Failed to organize tabs:', error)
+      console.error('[TabQuest] Failed to organize tabs:', error)
     } finally {
       setIsOrganizing(false)
     }

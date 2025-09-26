@@ -61,7 +61,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
               <span className="text-white text-xl">?</span>
             </div>
             <div>
-              <h2 className="text-xl font-bold ai-gradient-text">TabAI 사용 가이드</h2>
+              <h2 className="text-xl font-bold ai-gradient-text">TabQuest 사용 가이드</h2>
               <p className="text-sm glass-text opacity-70">AI 기반 탭 관리의 모든 것</p>
             </div>
           </div>
@@ -84,7 +84,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
               <div className="flex-1">
                 <h3 className="font-semibold glass-text mb-2">AI 학습 상태</h3>
                 <p className="text-sm glass-text opacity-80 mb-3">
-                  TabAI는 현재 당신의 브라우징 패턴을 학습 중입니다. 
+                  TabQuest는 현재 당신의 브라우징 패턴을 학습 중입니다. 
                   탭을 재분류하거나 새로운 탭을 열 때마다 AI가 더 똑똑해집니다.
                 </p>
                 <div className="flex items-center gap-2">

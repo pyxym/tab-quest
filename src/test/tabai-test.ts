@@ -1,4 +1,4 @@
-// TabAI Extension Test Suite
+// TabQuest Extension Test Suite
 // Run this in the browser console after the extension is loaded
 
 interface TestResult {
@@ -8,11 +8,11 @@ interface TestResult {
   error?: any
 }
 
-class TabAITester {
+class TabQuestTester {
   private results: TestResult[] = []
   
   constructor() {
-    console.log('🧪 TabAI Test Suite Starting...')
+    console.log('🧪 TabQuest Test Suite Starting...')
   }
   
   // Helper to wait
@@ -279,7 +279,7 @@ class TabAITester {
   
   // Run all tests
   async runAllTests(createTabs = true) {
-    console.log('🚀 Starting TabAI Test Suite...\n')
+    console.log('🚀 Starting TabQuest Test Suite...\n')
     
     let testTabIds: number[] = []
     
@@ -357,14 +357,14 @@ class TabAITester {
 }
 
 // Export for use in console
-(window as any).TabAITester = TabAITester
+(window as any).TabQuestTester = TabQuestTester
 
 // Usage instructions
 console.log(`
-🧪 TabAI Test Suite Ready!
+🧪 TabQuest Test Suite Ready!
 
 To run tests:
-1. const tester = new TabAITester()
+1. const tester = new TabQuestTester()
 2. await tester.runAllTests(true)  // true = create test tabs
    OR
    await tester.runAllTests(false) // false = use existing tabs

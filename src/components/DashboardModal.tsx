@@ -170,7 +170,7 @@ export const DashboardModal: React.FC<DashboardModalProps> = ({ onClose }) => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-bold ai-gradient-text">
-                TabAI Analytics
+                TabQuest Analytics
               </h1>
               <p className="text-sm text-white/90 mt-1">
                 AI-powered insights for your browsing habits

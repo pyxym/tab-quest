@@ -7,11 +7,10 @@ export default defineConfig({
     server: {
       port: 3000,
     },
-    // 자동 리로드 설정
     reloadCommand: 'Alt+R',
   },
   manifest: {
-    name: 'TabAI - AI-Powered Tab Manager',
+    name: 'TabQuest - AI-Powered Tab Manager',
     version: '1.0.0',
     description: 'AI-powered browser tab management extension',
     permissions: ['tabs', 'storage', 'activeTab', 'tabGroups', 'windows', 'alarms'],

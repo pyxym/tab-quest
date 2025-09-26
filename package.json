@@ -1,6 +1,6 @@
 {
-  "name": "tabai",
-  "displayName": "TabAI - Tab Assistant",
+  "name": "tabquest",
+  "displayName": "TabQuest - Tab Assistant",
   "version": "0.0.1",
   "description": "브라우저 탭 관리",
   "author": "YonYonWare",

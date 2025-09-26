@@ -13,13 +13,13 @@ if (typeof window !== 'undefined') {
   })
 }
 
-console.log('[TabAI] Background script loaded at', new Date().toISOString())
+console.log('[TabQuest] Background script loaded at', new Date().toISOString())
 
 // Initialize tab tracking
 TabTracker.initialize().then(() => {
-  console.log('[TabAI] Tab tracking initialized')
+  console.log('[TabQuest] Tab tracking initialized')
 }).catch(error => {
-  console.error('[TabAI] Failed to initialize tab tracking:', error)
+  console.error('[TabQuest] Failed to initialize tab tracking:', error)
 })
 
 // Clean up old data daily
@@ -29,11 +29,11 @@ setInterval(() => {
 
 // Simple message handler for tab organization
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  console.log('[TabAI] Received message:', request?.action || 'unknown action', request)
+  console.log('[TabQuest] Received message:', request?.action || 'unknown action', request)
   
   // Simple ping test
   if (request.action === 'ping') {
-    console.log('[TabAI] Responding to ping')
+    console.log('[TabQuest] Responding to ping')
     sendResponse({ success: true, message: 'pong' })
     return true
   }
@@ -43,7 +43,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     organizeTabsSimple()
       .then(sendResponse)
       .catch(error => {
-        console.error('[TabAI] Error:', error)
+        console.error('[TabQuest] Error:', error)
         sendResponse({ success: false, message: error.message })
       })
     return true // Keep channel open for async response
@@ -53,7 +53,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     getTabsAnalysis()
       .then(sendResponse)
       .catch(error => {
-        console.error('[TabAI] Error:', error)
+        console.error('[TabQuest] Error:', error)
         sendResponse({ error: error.message })
       })
     return true
@@ -85,7 +85,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 async function organizeTabsSimple() {
   try {
     const tabs = await chrome.tabs.query({ currentWindow: true })
-    console.log(`[TabAI] Found ${tabs.length} tabs to organize`)
+    console.log(`[TabQuest] Found ${tabs.length} tabs to organize`)
     
     // First, ungroup all tabs
     const allTabIds = tabs
@@ -95,9 +95,9 @@ async function organizeTabsSimple() {
     if (allTabIds.length > 0) {
       try {
         await chrome.tabs.ungroup(allTabIds)
-        console.log('[TabAI] Ungrouped all tabs')
+        console.log('[TabQuest] Ungrouped all tabs')
       } catch (e) {
-        console.log('[TabAI] Some tabs were already ungrouped')
+        console.log('[TabQuest] Some tabs were already ungrouped')
       }
     }
     
@@ -123,7 +123,7 @@ async function organizeTabsSimple() {
         }
         domainGroups.get(domain)!.push(tab.id)
       } catch (error) {
-        console.error(`[TabAI] Error parsing URL: ${tab.url}`)
+        console.error(`[TabQuest] Error parsing URL: ${tab.url}`)
       }
     }
     
@@ -150,9 +150,9 @@ async function organizeTabsSimple() {
           })
           groupsCreated++
           colorIndex++
-          console.log(`[TabAI] Created group for ${domain} with ${tabIds.length} tabs`)
+          console.log(`[TabQuest] Created group for ${domain} with ${tabIds.length} tabs`)
         } catch (error) {
-          console.error(`[TabAI] Failed to create group for ${domain}:`, error)
+          console.error(`[TabQuest] Failed to create group for ${domain}:`, error)
         }
       }
     }
@@ -169,7 +169,7 @@ async function organizeTabsSimple() {
     }
     
   } catch (error) {
-    console.error('[TabAI] Organization failed:', error)
+    console.error('[TabQuest] Organization failed:', error)
     throw error
   }
 }
@@ -280,7 +280,7 @@ async function getTabsAnalysis() {
     }
     
   } catch (error) {
-    console.error('[TabAI] Analysis failed:', error)
+    console.error('[TabQuest] Analysis failed:', error)
     throw error
   }
 }
@@ -294,7 +294,7 @@ async function organizeTabsByCategories(categories: any[]) {
     
     // Get existing tab groups to check for duplicates
     const existingGroups = await chrome.tabGroups.query({})
-    console.log('[TabAI] Existing groups:', existingGroups.map(g => g.title))
+    console.log('[TabQuest] Existing groups:', existingGroups.map(g => g.title))
     
     // Remove duplicate groups with same title
     const groupsToRemove = new Map<string, chrome.tabGroups.TabGroup[]>()
@@ -309,12 +309,12 @@ async function organizeTabsByCategories(categories: any[]) {
     // Keep only the first group of each title, remove duplicates
     for (const [title, groups] of groupsToRemove) {
       if (groups.length > 1) {
-        console.log(`[TabAI] Found ${groups.length} duplicate groups for "${title}", removing extras`)
+        console.log(`[TabQuest] Found ${groups.length} duplicate groups for "${title}", removing extras`)
         for (let i = 1; i < groups.length; i++) {
           try {
             await chrome.tabs.ungroup(await chrome.tabs.query({ groupId: groups[i].id }))
           } catch (e) {
-            console.log(`[TabAI] Failed to remove duplicate group: ${e}`)
+            console.log(`[TabQuest] Failed to remove duplicate group: ${e}`)
           }
         }
       }
@@ -328,9 +328,9 @@ async function organizeTabsByCategories(categories: any[]) {
     if (allTabIds.length > 0) {
       try {
         await chrome.tabs.ungroup(allTabIds)
-        console.log('[TabAI] Ungrouped all tabs')
+        console.log('[TabQuest] Ungrouped all tabs')
       } catch (e) {
-        console.log('[TabAI] Some tabs were already ungrouped')
+        console.log('[TabQuest] Some tabs were already ungrouped')
       }
     }
     
@@ -373,7 +373,7 @@ async function organizeTabsByCategories(categories: any[]) {
           }
         }
       } catch (error) {
-        console.error(`[TabAI] Error parsing URL: ${tab.url}`)
+        console.error(`[TabQuest] Error parsing URL: ${tab.url}`)
         // For invalid URLs, treat as uncategorized
         categoryId = 'uncategorized'
       }
@@ -409,9 +409,9 @@ async function organizeTabsByCategories(categories: any[]) {
         await chrome.tabGroups.move(groupId, { index: -1 })
         
         groupsCreated++
-        console.log(`[TabAI] Created group for ${category.name} with ${tabIds.length} tabs`)
+        console.log(`[TabQuest] Created group for ${category.name} with ${tabIds.length} tabs`)
       } catch (error) {
-        console.error(`[TabAI] Failed to create group for ${category.name}:`, error)
+        console.error(`[TabQuest] Failed to create group for ${category.name}:`, error)
       }
     }
     
@@ -427,12 +427,12 @@ async function organizeTabsByCategories(categories: any[]) {
     }
     
   } catch (error) {
-    console.error('[TabAI] Category organization failed:', error)
+    console.error('[TabQuest] Category organization failed:', error)
     throw error
   }
 }
 
-console.log('[TabAI] Background script initialized')
+console.log('[TabQuest] Background script initialized')
 
 // Make debug tools available globally
 if (typeof globalThis !== 'undefined') {

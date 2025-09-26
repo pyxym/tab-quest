@@ -1,8 +1,8 @@
-# TabAI - AI-Powered Tab Assistant
+# TabQuest - AI-Powered Tab Assistant
 
 ## 🚀 개요
 
-TabAI는 인공지능을 활용하여 브라우저 탭을 자동으로 정리하고 관리하는 Chrome/Edge 확장 프로그램입니다. 사용자의 브라우징 패턴을 학습하여 탭을 스마트하게 분류하고, 생산성을 향상시키는 인사이트를 제공합니다.
+TabQuest는 인공지능을 활용하여 브라우저 탭을 자동으로 정리하고 관리하는 Chrome/Edge 확장 프로그램입니다. 사용자의 브라우징 패턴을 학습하여 탭을 스마트하게 분류하고, 생산성을 향상시키는 인사이트를 제공합니다.
 
 ## 🏗️ 아키텍처
 
@@ -16,7 +16,7 @@ TabAI는 인공지능을 활용하여 브라우저 탭을 자동으로 정리하
 
 ### 프로젝트 구조
 ```
-tabai/
+tabquest/
 ├── src/
 │   ├── components/        # React 컴포넌트
 │   │   ├── AILogo.tsx          # AI 브랜드 로고

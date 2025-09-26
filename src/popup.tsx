@@ -42,7 +42,7 @@ function IndexPopup() {
       addInsight({
         id: 'welcome-message',
         type: 'tip',
-        title: '👋 TabAI에 오신 것을 환영합니다!',
+        title: '👋 TabQuest에 오신 것을 환영합니다!',
         description: 'AI 기반 탭 관리로 브라우징 경험을 혁신하세요. 도움말 버튼(?)을 눌러 전체 가이드를 확인하세요.',
         priority: 'high',
         timestamp: Date.now(),
@@ -97,11 +97,11 @@ function IndexPopup() {
           label: "Remove duplicates",
           action: async () => {
             try {
-              console.log('[TabAI] Starting duplicate removal...')
+              console.log('[TabQuest] Starting duplicate removal...')
               
               // Get all tabs in current window
               const tabs = await chrome.tabs.query({ currentWindow: true })
-              console.log(`[TabAI] Found ${tabs.length} total tabs`)
+              console.log(`[TabQuest] Found ${tabs.length} total tabs`)
               
               const urlMap = new Map<string, chrome.tabs.Tab[]>()
               
@@ -135,7 +135,7 @@ function IndexPopup() {
                 }
               })
               
-              console.log('[TabAI] URL groups:', Array.from(urlMap.entries()).map(([url, tabs]) => `${url}: ${tabs.length}`))
+              console.log('[TabQuest] URL groups:', Array.from(urlMap.entries()).map(([url, tabs]) => `${url}: ${tabs.length}`))
               
               // Find and close duplicates
               let closedCount = 0
@@ -143,7 +143,7 @@ function IndexPopup() {
               
               for (const [url, tabGroup] of urlMap) {
                 if (tabGroup.length > 1) {
-                  console.log(`[TabAI] Found ${tabGroup.length} tabs for ${url}`)
+                  console.log(`[TabQuest] Found ${tabGroup.length} tabs for ${url}`)
                   
                   // Sort by id to keep the oldest tab
                   tabGroup.sort((a, b) => (a.id || 0) - (b.id || 0))
@@ -158,7 +158,7 @@ function IndexPopup() {
                 }
               }
               
-              console.log(`[TabAI] Will close ${closedCount} duplicate tabs`)
+              console.log(`[TabQuest] Will close ${closedCount} duplicate tabs`)
               
               // Close all duplicate tabs at once
               if (tabsToClose.length > 0) {
@@ -177,7 +177,7 @@ function IndexPopup() {
                   timestamp: Date.now()
                 })
               } else {
-                console.log('[TabAI] No duplicates found to remove')
+                console.log('[TabQuest] No duplicates found to remove')
               }
               
               // Reload tabs and analysis
@@ -186,7 +186,7 @@ function IndexPopup() {
               }, 500)
               
             } catch (error) {
-              console.error('[TabAI] Failed to remove duplicates:', error)
+              console.error('[TabQuest] Failed to remove duplicates:', error)
               alert('Failed to remove duplicate tabs. Please check console for details.')
             }
           }
@@ -271,23 +271,23 @@ function IndexPopup() {
   
   
   async function handleAIOrganize() {
-    console.log('[TabAI] handleAIOrganize called, current isOrganizing:', isOrganizing)
+    console.log('[TabQuest] handleAIOrganize called, current isOrganizing:', isOrganizing)
     if (isOrganizing) {
-      console.log('[TabAI] Already organizing, skipping...')
+      console.log('[TabQuest] Already organizing, skipping...')
       return
     }
     
     setIsOrganizing(true)
-    console.log('[TabAI] Set isOrganizing to true')
+    console.log('[TabQuest] Set isOrganizing to true')
     
     try {
-      console.log('[TabAI] Starting Smart organization...')
-      console.log('[TabAI] Categories available:', categories?.length || 0)
+      console.log('[TabQuest] Starting Smart organization...')
+      console.log('[TabQuest] Categories available:', categories?.length || 0)
       
       // Use the unified organization function
       const result = await organizeTabsUnified(categories)
       
-      console.log('[TabAI] Organization result:', result)
+      console.log('[TabQuest] Organization result:', result)
       
       if (!result) {
         throw new Error('No response from background script')
@@ -344,7 +344,7 @@ function IndexPopup() {
       // Check if it's a timeout error
       if (error.message?.includes('Timeout') || error.message?.includes('timeout')) {
         // Try fallback to smartOrganize
-        console.log('[TabAI] Timeout occurred, trying smartOrganize as fallback')
+        console.log('[TabQuest] Timeout occurred, trying smartOrganize as fallback')
         try {
           const fallbackResult = await chrome.runtime.sendMessage({ 
             action: "smartOrganize"
@@ -354,7 +354,7 @@ function IndexPopup() {
             return
           }
         } catch (fallbackError) {
-          console.error('[TabAI] Fallback also failed:', fallbackError)
+          console.error('[TabQuest] Fallback also failed:', fallbackError)
         }
         
         addInsight({
@@ -376,7 +376,7 @@ function IndexPopup() {
         })
       }
     } finally {
-      console.log('[TabAI] Finally block: setting isOrganizing to false')
+      console.log('[TabQuest] Finally block: setting isOrganizing to false')
       // Ensure state is reset
       setIsOrganizing(false)
       // Reload data
@@ -427,7 +427,7 @@ function IndexPopup() {
               <div className="flex items-center gap-3">
                 <AILogo size="medium" />
                 <div>
-                  <h1 className="font-bold text-lg ai-gradient-text">TabAI</h1>
+                  <h1 className="font-bold text-lg ai-gradient-text">TabQuest</h1>
                   <p className="text-xs glass-text opacity-70">Tab Assistant</p>
                 </div>
               </div>

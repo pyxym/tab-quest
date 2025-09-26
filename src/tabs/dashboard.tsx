@@ -116,7 +116,7 @@ function Dashboard() {
           <div className="flex items-center gap-4">
             <AILogo size="large" />
             <div>
-              <h1 className="text-3xl font-bold ai-gradient-text">TabAI Dashboard</h1>
+              <h1 className="text-3xl font-bold ai-gradient-text">TabQuest Dashboard</h1>
               <p className="text-gray-600 dark:text-gray-400">
                 AI-powered insights for your browsing habits
               </p>

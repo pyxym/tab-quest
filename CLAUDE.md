@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**TabAI** is an AI-powered browser tab management extension that uses artificial intelligence to automatically organize, analyze, and optimize users' browsing experience. The extension learns from user patterns and provides intelligent suggestions for tab management.
+**TabQuest** is an AI-powered browser tab management extension that uses artificial intelligence to automatically organize, analyze, and optimize users' browsing experience. The extension learns from user patterns and provides intelligent suggestions for tab management.
 
 ## Technology Stack
 
