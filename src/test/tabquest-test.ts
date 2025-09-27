@@ -203,13 +203,14 @@ class TabQuestTester {
   // Test 5: Tab Group Manipulation
   async testTabGroupManipulation() {
     console.log('\n🔍 Test 5: Tab Group Manipulation')
-    
+
     try {
-      // Create a test group
-      const tabs = await chrome.tabs.query({ currentWindow: true, grouped: false })
-      
-      if (tabs.length >= 2) {
-        const tabIds = tabs.slice(0, 2).map(t => t.id).filter(id => id !== undefined) as number[]
+      // Create a test group - get ungrouped tabs
+      const tabs = await chrome.tabs.query({ currentWindow: true })
+      const ungroupedTabs = tabs.filter(tab => tab.groupId === chrome.tabGroups.TAB_GROUP_ID_NONE)
+
+      if (ungroupedTabs.length >= 2) {
+        const tabIds = ungroupedTabs.slice(0, 2).map(t => t.id).filter(id => id !== undefined) as number[]
         const groupId = await chrome.tabs.group({ tabIds })
         
         // Update group properties

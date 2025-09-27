@@ -1,6 +1,5 @@
 // AI-powered tab classification system
 import type { TabInfo } from '../store/tabStore'
-import type { Category } from '../types/category'
 import { storageUtils } from '../utils/storage'
 
 export interface TabContext {
@@ -350,14 +349,14 @@ export class TabClassifier {
     const searchText = `${domain} ${title}`.toLowerCase()
     
     // Quick domain checks
-    const domainCategories = {
+    const domainCategories: Record<string, string> = {
       'github.com': 'development',
       'google.com': 'productivity',
       'youtube.com': 'entertainment',
       'facebook.com': 'social',
       'amazon.com': 'shopping'
     }
-    
+
     if (domainCategories[domain]) {
       return {
         category: domainCategories[domain],

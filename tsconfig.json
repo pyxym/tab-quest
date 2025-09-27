@@ -19,6 +19,6 @@
     "baseUrl": ".",
     "types": ["vite/client", "chrome", "wxt/browser"]
   },
-  "exclude": ["node_modules", ".output"],
+  "exclude": ["node_modules", ".output", "src/test/**/*"],
   "include": ["./**/*.ts", "./**/*.tsx"]
 }
