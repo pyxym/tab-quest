@@ -344,7 +344,7 @@ export class TabClassifier {
   }
   
   // Basic fallback classification
-  private getBasicCategory(domain: string, title: string): ClassificationResult {
+  private getBasicCategory(domain: string, _title: string): ClassificationResult {
     // This is the current hard-coded approach as a last resort
     
     // Quick domain checks
