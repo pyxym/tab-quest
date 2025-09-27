@@ -1,290 +1,206 @@
-# TabQuest - AI-Powered Tab Assistant
+# TabQuest - Intelligent Tab Assistant
 
-## 🚀 개요
+## 🚀 Overview
 
-TabQuest는 인공지능을 활용하여 브라우저 탭을 자동으로 정리하고 관리하는 Chrome/Edge 확장 프로그램입니다. 사용자의 브라우징 패턴을 학습하여 탭을 스마트하게 분류하고, 생산성을 향상시키는 인사이트를 제공합니다.
+TabQuest is an intelligent browser tab management extension for Chrome and Edge that helps users organize, track, and optimize their browsing experience. Using smart categorization and usage analytics, TabQuest transforms chaotic browser sessions into organized, productive workspaces.
 
-## 🏗️ 아키텍처
+## ✨ Key Features
 
-### 기술 스택
-- **프레임워크**: Plasmo Framework (Browser Extension 개발)
-- **프론트엔드**: React 18 + TypeScript
-- **상태 관리**: Zustand
-- **스타일링**: Tailwind CSS + Glass Morphism UI
-- **빌드 시스템**: Plasmo CLI
-- **확장 프로그램**: Chrome Extension Manifest V3
+### 📊 Smart Tab Organization
+- **Automatic Grouping**: Organize tabs into Chrome tab groups based on custom categories
+- **Category Management**: Create, edit, and reorder categories with drag-and-drop
+- **Domain Mapping**: Automatically assign domains to categories for consistent organization
 
-### 프로젝트 구조
-```
-tabquest/
-├── src/
-│   ├── components/        # React 컴포넌트
-│   │   ├── AILogo.tsx          # AI 브랜드 로고
-│   │   ├── AIInsightCard.tsx   # AI 인사이트 카드
-│   │   ├── CategoryManager.tsx  # 카테고리 관리
-│   │   ├── TabList.tsx         # 탭 목록 및 할당
-│   │   └── ...
-│   ├── store/            # Zustand 상태 스토어
-│   │   ├── tabStore.ts         # 탭 데이터 관리
-│   │   ├── aiStore.ts          # AI 인사이트 관리
-│   │   └── categoryStore.ts    # 카테고리 관리
-│   ├── utils/            # 유틸리티 함수
-│   │   ├── tabAnalyzer.ts      # 탭 분석 로직
-│   │   └── directOrganizer.ts  # 탭 그룹화 로직
-│   └── types/            # TypeScript 타입 정의
-├── background.ts         # 백그라운드 서비스 워커
-├── popup.tsx            # 메인 팝업 UI
-├── style.css            # 글로벌 스타일
-└── manifest.json        # 확장 프로그램 매니페스트
-```
+### 📈 Usage Analytics
+- **Tab Tracking**: Monitor time spent, access frequency, and usage patterns
+- **Daily Statistics**: Track productivity with daily breakdowns and trends
+- **Productivity Score**: Real-time productivity scoring based on browsing habits
 
-## 🔄 데이터 흐름
+### 🎯 Intelligent Insights
+- **Duplicate Detection**: Identify and remove duplicate tabs with one click
+- **Usage Patterns**: Discover browsing habits and optimization opportunities
+- **Smart Recommendations**: Get actionable suggestions to improve productivity
 
-### 1. 확장 프로그램 초기화
-```
-사용자가 확장 프로그램 클릭
-    ↓
-popup.tsx 로드
-    ↓
-초기 데이터 로드 (loadTabsAndAnalyze)
-    ├── Chrome API로 현재 탭 정보 가져오기
-    ├── 카테고리 데이터 로드 (Chrome Storage)
-    └── AI 분석 실행
-```
+### 🎨 Modern UI/UX
+- **Glass Morphism Design**: Beautiful, modern interface with blur effects and gradients
+- **Responsive Layout**: Adapts to different screen sizes and contexts
+- **Smooth Animations**: Polished interactions with careful attention to detail
 
-### 2. 탭 분석 프로세스
-```
-현재 탭 목록
-    ↓
-tabAnalyzer.ts
-    ├── 중복 탭 감지
-    ├── 도메인별 그룹화
-    ├── 카테고리 매칭
-    └── 생산성 점수 계산
-    ↓
-AI Insights 생성
-```
+## 🛠️ Technology Stack
 
-### 3. 스마트 정리 (Smart Organize)
-```
-사용자가 Smart Organize 클릭
-    ↓
-directOrganizer.ts
-    ├── 모든 탭 그룹 해제
-    ├── 카테고리별 탭 분류
-    ├── Chrome Tab Groups API로 그룹 생성
-    └── 카테고리 순서대로 그룹 정렬
-```
+- **Framework**: [WXT](https://wxt.dev/) - Next-gen web extension framework
+- **Frontend**: React 18 + TypeScript
+- **State Management**: Zustand
+- **Styling**: Tailwind CSS
+- **Build Tool**: Vite
+- **Extension**: Chrome Extension Manifest V3
 
-## 📦 주요 컴포넌트
+## 📦 Installation
 
-### Popup.tsx (메인 UI)
-- 확장 프로그램의 메인 인터페이스
-- 탭 통계, AI 인사이트, 빠른 액션 제공
-- Glass morphism 디자인 적용
+### Development Setup
 
-### CategoryManager.tsx
-- 카테고리 생성/수정/삭제
-- 드래그 앤 드롭으로 순서 변경
-- 시스템 카테고리(미분류) 보호
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/tab-ai.git
+   cd tab-ai
+   ```
 
-### TabList.tsx
-- 현재 열린 탭 목록 표시
-- 탭을 카테고리에 할당
-- 도메인 기반 자동 매칭
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-### AIInsightCard.tsx
-- AI가 생성한 인사이트 표시
-- 실행 가능한 액션 제공 (중복 제거, 정리 등)
-- 우선순위별 색상 구분
+3. **Start development server**
+   ```bash
+   npm run dev
+   ```
 
-## 🧠 AI 기능
+4. **Load extension in Chrome/Edge**
+   - Open `chrome://extensions` (or `edge://extensions`)
+   - Enable "Developer mode"
+   - Click "Load unpacked"
+   - Select the `.output/chrome-mv3-dev` folder
 
-### 1. 탭 패턴 분석
-- 도메인별 사용 빈도 측정
-- 카테고리별 탭 분포 분석
-- 중복 탭 자동 감지
+### Production Build
 
-### 2. 스마트 인사이트
-```typescript
-// AI 인사이트 타입
-type InsightType = 'tip' | 'alert' | 'suggestion' | 'pattern'
-
-// 인사이트 예시
-- 중복 탭 감지: "3개의 중복 탭이 발견되었습니다"
-- 높은 탭 수: "20개 이상의 탭이 성능을 저하시킬 수 있습니다"
-- 카테고리 집중: "개발 관련 탭이 많이 열려있습니다"
-```
-
-### 3. 생산성 점수
-- 열린 탭 수, 중복 탭, 카테고리 분포를 기반으로 계산
-- 0-100점 스케일
-- 향상 추세 표시
-
-## 🔧 Chrome APIs 사용
-
-### Tabs API
-```typescript
-// 탭 정보 조회
-chrome.tabs.query({}, (tabs) => {
-  // 모든 탭 정보 처리
-})
-
-// 탭 제거
-chrome.tabs.remove(tabIds)
-```
-
-### Tab Groups API
-```typescript
-// 탭 그룹 생성
-const groupId = await chrome.tabs.group({ tabIds })
-
-// 그룹 속성 설정
-await chrome.tabGroups.update(groupId, {
-  title: "Work",
-  color: "blue",
-  collapsed: false
-})
-```
-
-### Storage API
-```typescript
-// 카테고리 저장
-chrome.storage.sync.set({ categories })
-
-// 설정 로드
-chrome.storage.sync.get(['categories'], (result) => {
-  // 데이터 사용
-})
-```
-
-## 🚦 상태 관리 (Zustand)
-
-### tabStore
-```typescript
-interface TabStore {
-  tabs: Tab[]
-  setTabs: (tabs: Tab[]) => void
-  activeTab: Tab | null
-  setActiveTab: (tab: Tab | null) => void
-}
-```
-
-### categoryStore
-```typescript
-interface CategoryStore {
-  categories: Category[]
-  loadCategories: () => Promise<void>
-  saveCategory: (category: Category) => Promise<void>
-  deleteCategory: (id: string) => Promise<void>
-  reorderCategories: (categories: Category[]) => Promise<void>
-}
-```
-
-### aiStore
-```typescript
-interface AIStore {
-  insights: Insight[]
-  productivityScore: number
-  addInsight: (insight: Insight) => void
-  removeInsight: (id: string) => void
-  setProductivityScore: (score: number) => void
-}
-```
-
-## 🎨 UI/UX 특징
-
-### Glass Morphism 디자인
-- 반투명 배경 + 블러 효과
-- 그라디언트 오버레이
-- 애니메이션 블롭 배경
-
-### 반응형 인터랙션
-- 호버 효과
-- 스케일 애니메이션
-- 부드러운 전환 효과
-
-### 접근성
-- 명확한 아이콘 + 텍스트 라벨
-- 툴팁으로 추가 정보 제공
-- 키보드 네비게이션 지원
-
-## 🐛 문제 해결
-
-### Background Script 통신 문제
-- Manifest V3의 Service Worker 특성상 장시간 대기 시 종료됨
-- 해결: directOrganizer.ts로 직접 Chrome API 호출
-
-### HMR (Hot Module Replacement) 충돌
-- MetaMask 등 다른 확장 프로그램과 충돌
-- 해결: 에러 이벤트 필터링으로 무시
-
-### 탭 그룹 순서 문제
-- Chrome API가 그룹 생성 순서를 보장하지 않음
-- 해결: chrome.tabGroups.move()로 수동 정렬
-
-## 🚀 설치 및 실행
-
-### 개발 환경 설정
 ```bash
-# 의존성 설치
-npm install
-
-# 개발 서버 실행
-npm run dev
-
-# 프로덕션 빌드
+# Build for production
 npm run build
+
+# Package as zip
+npm run zip
 ```
 
-### 확장 프로그램 로드
-1. Chrome/Edge에서 `chrome://extensions` 접속
-2. 개발자 모드 활성화
-3. "압축 해제된 확장 프로그램 로드" 클릭
-4. `build/chrome-mv3-dev` 폴더 선택
+The production build will be in `.output/chrome-mv3/`
 
-## 📝 사용 가이드
+## 🎯 Usage Guide
 
-### 기본 사용법
-1. 확장 프로그램 아이콘 클릭
-2. AI 인사이트 확인
-3. Smart Organize로 탭 자동 정리
+### Getting Started
 
-### 카테고리 관리
-1. 설정 → 카테고리 관리
-2. 새 카테고리 추가
-3. 도메인 할당
-4. 드래그로 순서 변경
+1. **Click the TabQuest icon** in your browser toolbar
+2. **View your current tabs** organized by detected patterns
+3. **Click "Smart Organize"** to automatically group tabs into categories
 
-### 탭 할당
-1. 탭 목록 보기
-2. 각 탭의 카테고리 선택
-3. Smart Organize로 적용
+### Managing Categories
 
-## 🔮 향후 계획
+1. Navigate to the **Categories** tab
+2. Click **"+ Add Category"** to create custom categories
+3. Assign colors and domains to each category
+4. Drag categories to reorder them
 
-### 단기 목표
-- [ ] 키워드 기반 탭 분류
-- [ ] 세션 저장/복원 기능
-- [ ] 탭 사용 시간 추적
+### Tab Assignment
 
-### 장기 목표
-- [ ] 머신러닝 기반 자동 분류
-- [ ] 크로스 브라우저 지원
-- [ ] 팀 협업 기능
+1. Go to the **Assign** tab
+2. Select a category for each domain
+3. Changes are saved automatically
+4. Use **Smart Organize** to apply categorization
 
-## 📄 라이선스
+### Viewing Analytics
 
-MIT License
+1. Check the **Dashboard** for usage statistics
+2. Monitor your productivity score
+3. Review daily trends and patterns
+4. Act on AI-generated insights
 
-## 👥 기여하기
+## 🏗️ Project Structure
+
+```
+tab-ai/
+├── src/
+│   ├── entrypoints/        # WXT entry points
+│   │   ├── popup/         # Popup UI
+│   │   ├── options/       # Options page
+│   │   └── background.ts  # Service worker
+│   ├── components/        # React components
+│   ├── store/            # State management
+│   ├── utils/            # Utilities
+│   ├── types/            # TypeScript types
+│   └── styles/           # CSS files
+├── public/               # Static assets
+├── wxt.config.ts        # WXT configuration
+└── package.json
+```
+
+## 🔧 Configuration
+
+### WXT Configuration
+The extension is configured through `wxt.config.ts`:
+- Manifest settings
+- Build options
+- Development server configuration
+
+### Storage Schema
+TabQuest uses Chrome's storage API with two areas:
+- **Sync Storage**: User preferences and categories
+- **Local Storage**: Usage data and statistics
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **Extension not loading**
+   - Ensure you're in developer mode
+   - Check that the correct folder is selected
+   - Rebuild if necessary: `npm run build`
+
+2. **Tabs not grouping**
+   - Verify Chrome/Edge supports tab groups
+   - Check browser permissions
+   - Ensure categories are properly configured
+
+3. **Data not persisting**
+   - Check storage permissions in manifest
+   - Verify Chrome sync is enabled
+   - Check browser console for errors
+
+## 🤝 Contributing
+
+We welcome contributions! Please follow these steps:
 
 1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Development Guidelines
+
+- Follow existing code style and patterns
+- Write meaningful commit messages
+- Update documentation for new features
+- Test thoroughly before submitting PR
+
+## 📝 Roadmap
+
+### Near Term
+- [ ] Keyboard shortcuts support
+- [ ] Export/import settings
+- [ ] Session management
+- [ ] Advanced search and filtering
+
+### Long Term
+- [ ] Firefox and Safari support
+- [ ] Cloud synchronization
+- [ ] Team collaboration features
+- [ ] AI-powered auto-categorization
+- [ ] Natural language commands
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file for details
+
+## 🙏 Acknowledgments
+
+- Built with [WXT](https://wxt.dev/) framework
+- Icons from [Heroicons](https://heroicons.com/)
+- UI inspiration from modern glass morphism designs
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/yourusername/tab-ai/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/tab-ai/discussions)
+- **Email**: support@tabquest.app
 
 ---
 
-Made with ❤️ by TabAI Team
+Made with ❤️ by the TabQuest Team
