@@ -1,4 +1,17 @@
 // Debug utilities for TabTracker
+
+interface TabUsageData {
+  url: string
+  domain: string
+  title: string
+  category: string
+  firstSeen: number
+  lastAccessed: number
+  totalTimeSpent: number
+  accessCount: number
+  activations: number
+}
+
 export class TabTrackerDebug {
   static async getStoredData() {
     const data = await chrome.storage.local.get(['tabUsageData', 'dailyStats'])
@@ -14,11 +27,15 @@ export class TabTrackerDebug {
   static async recategorizeAllData() {
     console.log('[TabTrackerDebug] Starting recategorization...')
     
-    const { tabUsageData = {}, categoryMapping = {}, categories = [] } = await chrome.storage.local.get(['tabUsageData'])
-    const { categoryMapping: mapping, categories: cats } = await chrome.storage.sync.get(['categoryMapping', 'categories'])
-    
+    const result = await chrome.storage.local.get(['tabUsageData'])
+    const tabUsageData = result.tabUsageData as Record<string, TabUsageData> || {}
+
+    const syncData = await chrome.storage.sync.get(['categoryMapping', 'categories'])
+    const mapping = syncData.categoryMapping as Record<string, string>
+    const cats = syncData.categories as any[]
+
     let updated = 0
-    
+
     for (const [domain, data] of Object.entries(tabUsageData)) {
       const oldCategory = data.category
       
@@ -59,7 +76,7 @@ export class TabTrackerDebug {
   }
   
   static async simulateTabUsage() {
-    const testData = {
+    const testData: Record<string, TabUsageData> = {
       'example.com': {
         url: 'https://example.com',
         domain: 'example.com',

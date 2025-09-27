@@ -1,6 +1,12 @@
 export {}
 import { TabTracker } from './utils/tabTracker'
-import { TabTrackerDebug } from './utils/debugTabTracker'
+// Import debug utilities only in development
+let TabTrackerDebug: any
+if (import.meta.env.DEV) {
+  import('./utils/debugTabTracker').then(module => {
+    TabTrackerDebug = module.TabTrackerDebug
+  })
+}
 import { storageUtils } from './utils/storage'
 
 // Suppress external extension errors
@@ -443,7 +449,7 @@ async function organizeTabsByCategories(categories: any[]) {
 
 console.log('[TabQuest] Background script initialized')
 
-// Make debug tools available globally
-if (typeof globalThis !== 'undefined') {
+// Make debug tools available globally (development only)
+if (import.meta.env.DEV && typeof globalThis !== 'undefined' && TabTrackerDebug) {
   (globalThis as any).TabTrackerDebug = TabTrackerDebug
 }

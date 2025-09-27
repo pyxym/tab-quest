@@ -11,7 +11,7 @@ import { AILearningStatus } from "./components/AILearningStatus"
 import { useTabStore } from "./store/tabStore"
 import { useAIStore } from "./store/aiStore"
 import { useCategoryStore } from "./store/categoryStore"
-import { calculateProductivityScore, findDuplicates } from "./utils/tabAnalyzer"
+import { calculateProductivityScore } from "./utils/tabAnalyzer"
 import { organizeTabsUnified } from "./utils/unifiedOrganizer"
 import "../style.css"
 
@@ -150,8 +150,9 @@ function IndexPopup() {
                   
                   // Keep the first tab, mark others for closing
                   for (let i = 1; i < tabGroup.length; i++) {
-                    if (tabGroup[i].id) {
-                      tabsToClose.push(tabGroup[i].id)
+                    const tabId = tabGroup[i].id
+                    if (tabId !== undefined) {
+                      tabsToClose.push(tabId)
                       closedCount++
                     }
                   }
