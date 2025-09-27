@@ -220,7 +220,7 @@ export class TabClassifier {
   
   // Context-based classification
   private async getContextBasedCategory(context: TabContext): Promise<ClassificationResult> {
-    const { sessionTabs, timeOfDay } = context
+    const { sessionTabs } = context
     
     // Analyze categories of other tabs in the session
     const sessionCategories = new Map<string, number>()
@@ -346,7 +346,6 @@ export class TabClassifier {
   // Basic fallback classification
   private getBasicCategory(domain: string, title: string): ClassificationResult {
     // This is the current hard-coded approach as a last resort
-    const searchText = `${domain} ${title}`.toLowerCase()
     
     // Quick domain checks
     const domainCategories: Record<string, string> = {
@@ -437,7 +436,7 @@ export class TabClassifier {
     
     // Most categorized domains
     const domainsByCategory = new Map<string, number>()
-    for (const [domain, pattern] of this.userPatterns) {
+    for (const [, pattern] of this.userPatterns) {
       for (const [category, count] of pattern.categories) {
         domainsByCategory.set(category, (domainsByCategory.get(category) || 0) + count)
       }
