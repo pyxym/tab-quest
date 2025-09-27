@@ -1,0 +1,174 @@
+{
+  "header": {
+    "subtitle": "Tab Assistant"
+  },
+  "app": {
+    "name": "TabQuest",
+    "tagline": "Tab Assistant"
+  },
+  "stats": {
+    "activeTabs": "Active Tabs",
+    "categories": "Categories",
+    "duplicates": "Duplicates"
+  },
+  "insights": {
+    "title": "AI Insights & Recommendations",
+    "noInsights": "No insights available at the moment",
+    "checkTabs": "Open more tabs to get smart recommendations",
+    "welcome": {
+      "title": "👋 Welcome to TabQuest!",
+      "description": "Transform your browsing experience with AI-powered tab management. Click the help button (?) for a complete guide.",
+      "action": "View Guide"
+    },
+    "duplicates": {
+      "title": "{{count}} duplicate tabs detected",
+      "description": "You have multiple tabs open for the same pages. Clean them up to save memory.",
+      "action": "Remove duplicates"
+    },
+    "highTabCount": {
+      "title": "{{count}} tabs are slowing you down",
+      "description": "Consider using AI Smart Organize to group related tabs together.",
+      "action": "Organize now"
+    },
+    "categoryFocus": {
+      "title": "Heavy {{category}} usage detected",
+      "description": "You have {{count}} {{category}} tabs open. Consider creating a dedicated workspace."
+    },
+    "duplicatesRemoved": {
+      "title": "✅ Duplicates Removed",
+      "description": "Successfully closed {{count}} duplicate tab{{count, plural, one {} other {s}}}"
+    },
+    "analyzing": {
+      "title": "Analyzing tab usage patterns",
+      "description": "We'll provide personalized insights soon"
+    },
+    "organizationAvailable": {
+      "title": "Tab organization available",
+      "description": "Organize your {{count}} tabs into {{categoryCount}} categories for better productivity.",
+      "action": "Organize now"
+    }
+  },
+  "categories": {
+    "work": "Work",
+    "productivity": "Productivity",
+    "social": "Social",
+    "entertainment": "Entertainment",
+    "shopping": "Shopping",
+    "news": "News",
+    "learning": "Learning",
+    "development": "Development",
+    "finance": "Finance",
+    "health": "Health",
+    "travel": "Travel",
+    "food": "Food",
+    "uncategorized": "Uncategorized",
+    "other": "Other",
+    "aiLearning": "AI Learning",
+    "domains": "domains",
+    "score": "Score"
+  },
+  "actions": {
+    "quickActions": "Quick Actions",
+    "smartOrganize": "Smart Organize",
+    "organizing": "Smart Organizing...",
+    "viewAnalytics": "Analytics",
+    "analytics": "Analytics",
+    "categories": "Categories",
+    "assign": "Assign",
+    "help": "Help",
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "add": "Add",
+    "edit": "Edit",
+    "organizing": "Organizing...",
+    "loading": "Loading...",
+    "search": "Search",
+    "filter": "Filter"
+  },
+  "messages": {
+    "organizingTabs": "Organizing tabs...",
+    "organizationSuccess": "Successfully organized {{count}} tabs",
+    "organizationError": "Failed to organize tabs",
+    "duplicatesRemoved": "Removed {{count}} duplicate tabs",
+    "noTabsToOrganize": "No tabs to organize",
+    "categoryAdded": "Category added successfully",
+    "categoryDeleted": "Category deleted successfully",
+    "categoryUpdated": "Category updated successfully",
+    "error": "An error occurred",
+    "success": "Success"
+  },
+  "tooltips": {
+    "insights": {
+      "title": "Tab Insights",
+      "description": "Check your tab usage patterns and improvement suggestions.",
+      "features": [
+        "Detect and suggest cleaning duplicate tabs",
+        "Analyze usage patterns by category",
+        "Personalized tips for productivity improvement"
+      ]
+    },
+    "smartOrganize": {
+      "title": "Smart Organize",
+      "description": "Smart organize tabs based on categories.",
+      "features": [
+        "Create tab groups in category order",
+        "Automatic domain-based classification",
+        "Organize all tabs with one click"
+      ]
+    },
+    "analytics": "View detailed tab usage analytics",
+    "categories": "Manage your tab categories",
+    "assign": "Manually assign domains to categories",
+    "help": "View help and documentation",
+    "settings": "Settings",
+    "language": "Language"
+  },
+  "modal": {
+    "categoryManager": {
+      "title": "Category Manager",
+      "description": "Create and manage categories for your tabs",
+      "addCategory": "Add Category",
+      "editCategory": "Edit Category",
+      "deleteConfirm": "Delete this category?",
+      "categoryName": "Category Name",
+      "categoryColor": "Color",
+      "dragToReorder": "Drag to reorder"
+    },
+    "tabAssignment": {
+      "title": "Assign Tabs",
+      "description": "Manually assign domains to categories",
+      "domain": "Domain",
+      "category": "Category",
+      "selectCategory": "Select category"
+    },
+    "dashboard": {
+      "title": "Analytics Dashboard",
+      "description": "Your browsing patterns and productivity insights",
+      "dailyStats": "Daily Statistics",
+      "weeklyTrend": "Weekly Trend",
+      "categoryBreakdown": "Category Breakdown",
+      "topDomains": "Top Domains",
+      "timeSpent": "Time Spent",
+      "visits": "Visits"
+    },
+    "help": {
+      "title": "Help & Guide",
+      "gettingStarted": "Getting Started",
+      "features": "Features",
+      "shortcuts": "Keyboard Shortcuts",
+      "faq": "FAQ"
+    }
+  },
+  "settings": {
+    "clearData": {
+      "label": "Clear AI Data",
+      "confirm": "Clear AI learning data?\n\nCategory settings will be preserved, only AI-learned patterns will be reset.",
+      "success": {
+        "title": "✨ AI Data Cleared",
+        "description": "AI is ready to learn new patterns."
+      }
+    }
+  }
+}

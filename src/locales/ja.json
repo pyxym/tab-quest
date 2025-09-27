@@ -1,0 +1,174 @@
+{
+  "header": {
+    "subtitle": "タブアシスタント"
+  },
+  "app": {
+    "name": "TabQuest",
+    "tagline": "タブアシスタント"
+  },
+  "stats": {
+    "activeTabs": "アクティブタブ",
+    "categories": "カテゴリー",
+    "duplicates": "重複"
+  },
+  "insights": {
+    "title": "AIインサイト & レコメンデーション",
+    "noInsights": "現在利用可能なインサイトはありません",
+    "checkTabs": "スマートな推奨事項を取得するには、より多くのタブを開いてください",
+    "welcome": {
+      "title": "👋 TabQuestへようこそ！",
+      "description": "AIパワードタブ管理でブラウジング体験を変革しましょう。ヘルプボタン（？）をクリックして完全ガイドをご覧ください。",
+      "action": "ガイドを見る"
+    },
+    "duplicates": {
+      "title": "{{count}}個の重複タブを検出",
+      "description": "同じページが複数のタブで開かれています。メモリを節約するために整理しましょう。",
+      "action": "重複を削除"
+    },
+    "highTabCount": {
+      "title": "{{count}}個のタブが速度を低下させています",
+      "description": "AIスマート整理を使用して関連タブをグループ化しましょう。",
+      "action": "今すぐ整理"
+    },
+    "categoryFocus": {
+      "title": "{{category}}の使用量が多いです",
+      "description": "{{count}}個の{{category}}タブが開いています。専用ワークスペースの作成を検討してください。"
+    },
+    "duplicatesRemoved": {
+      "title": "✅ 重複削除完了",
+      "description": "{{count}}個の重複タブを正常に閉じました"
+    },
+    "analyzing": {
+      "title": "タブ使用パターンを分析中です",
+      "description": "まもなくパーソナライズされたインサイトを提供します"
+    },
+    "organizationAvailable": {
+      "title": "タブの整理が利用可能",
+      "description": "{{count}}個のタブを{{categoryCount}}個のカテゴリーに整理して生産性を向上させましょう。",
+      "action": "今すぐ整理"
+    }
+  },
+  "categories": {
+    "work": "仕事",
+    "productivity": "生産性",
+    "social": "ソーシャル",
+    "entertainment": "エンタメ",
+    "shopping": "ショッピング",
+    "news": "ニュース",
+    "learning": "学習",
+    "development": "開発",
+    "finance": "金融",
+    "health": "健康",
+    "travel": "旅行",
+    "food": "食べ物",
+    "uncategorized": "未分類",
+    "other": "その他",
+    "aiLearning": "AI学習",
+    "domains": "ドメイン",
+    "score": "スコア"
+  },
+  "actions": {
+    "quickActions": "クイックアクション",
+    "smartOrganize": "スマート整理",
+    "organizing": "スマート整理中...",
+    "viewAnalytics": "分析",
+    "analytics": "分析",
+    "categories": "カテゴリー",
+    "assign": "割り当て",
+    "help": "ヘルプ",
+    "close": "閉じる",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "delete": "削除",
+    "add": "追加",
+    "edit": "編集",
+    "organizing": "整理中...",
+    "loading": "読み込み中...",
+    "search": "検索",
+    "filter": "フィルター"
+  },
+  "messages": {
+    "organizingTabs": "タブを整理しています...",
+    "organizationSuccess": "{{count}}個のタブを正常に整理しました",
+    "organizationError": "タブの整理に失敗しました",
+    "duplicatesRemoved": "{{count}}個の重複タブを削除しました",
+    "noTabsToOrganize": "整理するタブがありません",
+    "categoryAdded": "カテゴリーが正常に追加されました",
+    "categoryDeleted": "カテゴリーが削除されました",
+    "categoryUpdated": "カテゴリーが更新されました",
+    "error": "エラーが発生しました",
+    "success": "成功"
+  },
+  "tooltips": {
+    "insights": {
+      "title": "タブインサイト",
+      "description": "タブ使用パターンと改善提案を確認してください。",
+      "features": [
+        "重複タブの検出と整理提案",
+        "カテゴリ別使用パターン分析",
+        "生産性向上のためのパーソナライズされたヒント"
+      ]
+    },
+    "smartOrganize": {
+      "title": "スマート整理",
+      "description": "カテゴリを基にタブをスマートに整理します。",
+      "features": [
+        "カテゴリ順にタブグループを作成",
+        "ドメインベースの自動分類",
+        "ワンクリックですべてのタブを整理"
+      ]
+    },
+    "analytics": "詳細なタブ使用分析を表示",
+    "categories": "タブカテゴリーを管理",
+    "assign": "ドメインをカテゴリーに手動で割り当て",
+    "help": "ヘルプとドキュメントを表示",
+    "settings": "設定",
+    "language": "言語"
+  },
+  "modal": {
+    "categoryManager": {
+      "title": "カテゴリー管理",
+      "description": "タブ用のカテゴリーを作成・管理",
+      "addCategory": "カテゴリー追加",
+      "editCategory": "カテゴリー編集",
+      "deleteConfirm": "このカテゴリーを削除しますか？",
+      "categoryName": "カテゴリー名",
+      "categoryColor": "色",
+      "dragToReorder": "ドラッグして並べ替え"
+    },
+    "tabAssignment": {
+      "title": "タブ割り当て",
+      "description": "ドメインをカテゴリーに手動で割り当て",
+      "domain": "ドメイン",
+      "category": "カテゴリー",
+      "selectCategory": "カテゴリーを選択"
+    },
+    "dashboard": {
+      "title": "分析ダッシュボード",
+      "description": "ブラウジングパターンと生産性インサイト",
+      "dailyStats": "日次統計",
+      "weeklyTrend": "週次トレンド",
+      "categoryBreakdown": "カテゴリー内訳",
+      "topDomains": "トップドメイン",
+      "timeSpent": "滞在時間",
+      "visits": "訪問数"
+    },
+    "help": {
+      "title": "ヘルプ & ガイド",
+      "gettingStarted": "はじめに",
+      "features": "機能",
+      "shortcuts": "キーボードショートカット",
+      "faq": "よくある質問"
+    }
+  },
+  "settings": {
+    "clearData": {
+      "label": "AIデータを初期化",
+      "confirm": "AI学習データを初期化しますか？\n\nカテゴリ設定は保持され、AIが学習したパターンのみ初期化されます。",
+      "success": {
+        "title": "✨ AIデータ初期化完了",
+        "description": "AIが新しいパターンを学習する準備ができました。"
+      }
+    }
+  }
+}
