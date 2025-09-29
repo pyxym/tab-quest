@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react"
+import { useTranslation } from 'react-i18next'
 import { useCategoryStore } from "../store/categoryStore"
 import { FavIcon } from "./FavIcon"
 import { InfoTooltip } from "./InfoTooltip"
@@ -14,6 +15,7 @@ interface TabWithCategory extends chrome.tabs.Tab {
 }
 
 export const TabList: React.FC<TabListProps> = ({ onClose }) => {
+  const { t } = useTranslation()
   const { categories, getCategoryForDomain, assignDomainToCategory, loadCategories } = useCategoryStore()
   const [tabs, setTabs] = useState<TabWithCategory[]>([])
   const [selectedTab, setSelectedTab] = useState<number | null>(null)
@@ -126,16 +128,12 @@ export const TabList: React.FC<TabListProps> = ({ onClose }) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-semibold ai-gradient-text">
-                Assign Tabs to Categories
+                {t('modal.tabAssignment.assignTabsToCategories')}
               </h2>
-              <InfoTooltip 
-                title="탭 카테고리 할당"
-                description="각 탭을 적절한 카테고리로 분류하여 효율적으로 관리하세요."
-                features={[
-                  "도메인 단위로 카테고리 할당",
-                  "같은 도메인의 모든 탭은 동일한 카테고리 사용",
-                  "Apply 버튼으로 브라우저에 탭 그룹 생성"
-                ]}
+              <InfoTooltip
+                title={t('modal.tabAssignment.title')}
+                description={t('modal.tabAssignment.description')}
+                features={t('modal.tabAssignment.features', { returnObjects: true }) as string[]}
                 position="bottom"
               />
             </div>
@@ -144,9 +142,9 @@ export const TabList: React.FC<TabListProps> = ({ onClose }) => {
                 onClick={organizeTabsByCategory}
                 className="glass-button-primary py-2 px-3 text-sm"
                 disabled={isOrganizing || isUpdating}
-                title="Apply category grouping to browser tabs"
+                title={t('modal.tabAssignment.applyButtonTooltip')}
               >
-                {isOrganizing ? '⏳ Applying...' : '🎯 Apply'}
+                {isOrganizing ? `⏳ ${t('modal.tabAssignment.applying')}` : `🎯 ${t('modal.tabAssignment.applyGrouping')}`}
               </button>
               <button
                 onClick={onClose}
@@ -174,7 +172,7 @@ export const TabList: React.FC<TabListProps> = ({ onClose }) => {
                   {/* Tab Title (single line) */}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm glass-text truncate" title={`${tab.title} - ${tab.url}`}>
-                      {tab.title || 'Untitled'}
+                      {tab.title || t('modal.tabAssignment.untitled')}
                       <span className="opacity-50 ml-2 text-xs">
                         {tab.url ? `• ${new URL(tab.url).hostname}` : ''}
                       </span>
@@ -213,7 +211,7 @@ export const TabList: React.FC<TabListProps> = ({ onClose }) => {
 
         <div className="px-4 py-4 border-t border-white/20">
           <p className="text-xs glass-text opacity-80">
-            💡 Tip: Categories are assigned by domain. When you change a tab's category, all tabs from the same domain (e.g., all github.com tabs) will use the same category.
+            💡 Tip: {t('modal.tabAssignment.tip')}
           </p>
         </div>
       </div>
