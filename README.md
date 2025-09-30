@@ -4,6 +4,8 @@
 
 TabQuest is an intelligent browser tab management extension for Chrome and Edge that helps users organize, track, and optimize their browsing experience. Using smart categorization and usage analytics, TabQuest transforms chaotic browser sessions into organized, productive workspaces.
 
+🌍 **Multi-language Support**: Available in English, Korean (한국어), and Japanese (日本語)
+
 ## ✨ Key Features
 
 ### 📊 Smart Tab Organization
@@ -23,6 +25,7 @@ TabQuest is an intelligent browser tab management extension for Chrome and Edge 
 
 ### 🎨 Modern UI/UX
 - **Glass Morphism Design**: Beautiful, modern interface with blur effects and gradients
+- **Multi-language Interface**: Switch between English, Korean, and Japanese
 - **Responsive Layout**: Adapts to different screen sizes and contexts
 - **Smooth Animations**: Polished interactions with careful attention to detail
 
@@ -31,7 +34,8 @@ TabQuest is an intelligent browser tab management extension for Chrome and Edge 
 - **Framework**: [WXT](https://wxt.dev/) - Next-gen web extension framework
 - **Frontend**: React 18 + TypeScript
 - **State Management**: Zustand
-- **Styling**: Tailwind CSS
+- **Internationalization**: i18next + react-i18next
+- **Styling**: Tailwind CSS with Glass Morphism
 - **Build Tool**: Vite
 - **Extension**: Chrome Extension Manifest V3
 
@@ -41,8 +45,8 @@ TabQuest is an intelligent browser tab management extension for Chrome and Edge 
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/tab-ai.git
-   cd tab-ai
+   git clone https://github.com/yourusername/tab-quest.git
+   cd tab-quest
    ```
 
 2. **Install dependencies**
@@ -67,8 +71,8 @@ TabQuest is an intelligent browser tab management extension for Chrome and Edge 
 # Build for production
 npm run build
 
-# Package as zip
-npm run zip
+# Package extension
+npm run package
 ```
 
 The production build will be in `.output/chrome-mv3/`
@@ -78,8 +82,9 @@ The production build will be in `.output/chrome-mv3/`
 ### Getting Started
 
 1. **Click the TabQuest icon** in your browser toolbar
-2. **View your current tabs** organized by detected patterns
-3. **Click "Smart Organize"** to automatically group tabs into categories
+2. **Select your preferred language** from the language switcher
+3. **View your current tabs** organized by detected patterns
+4. **Click "Smart Organize"** to automatically group tabs into categories
 
 ### Managing Categories
 
@@ -105,19 +110,25 @@ The production build will be in `.output/chrome-mv3/`
 ## 🏗️ Project Structure
 
 ```
-tab-ai/
+tab-quest/
 ├── src/
-│   ├── entrypoints/        # WXT entry points
-│   │   ├── popup/         # Popup UI
-│   │   ├── options/       # Options page
-│   │   └── background.ts  # Service worker
-│   ├── components/        # React components
+│   ├── entrypoints/      # WXT entry points
+│   │   ├── popup.tsx     # Main popup entry
+│   │   ├── options.tsx   # Options page
+│   │   └── background.ts # Service worker
+│   ├── components/       # React components
+│   ├── lib/              # Core libraries
+│   │   ├── i18n.ts       # Internationalization
+│   │   └── tabClassifier.ts
+│   ├── locales/          # Translation files
+│   │   ├── en.json       # English
+│   │   ├── ko.json       # Korean
+│   │   └── ja.json       # Japanese
 │   ├── store/            # State management
 │   ├── utils/            # Utilities
-│   ├── types/            # TypeScript types
-│   └── styles/           # CSS files
+│   └── types/            # TypeScript types
 ├── public/               # Static assets
-├── wxt.config.ts        # WXT configuration
+├── wxt.config.ts         # WXT configuration
 └── package.json
 ```
 
@@ -173,6 +184,7 @@ We welcome contributions! Please follow these steps:
 ## 📝 Roadmap
 
 ### Near Term
+- [x] Multi-language support (EN, KO, JA)
 - [ ] Keyboard shortcuts support
 - [ ] Export/import settings
 - [ ] Session management
@@ -184,6 +196,7 @@ We welcome contributions! Please follow these steps:
 - [ ] Team collaboration features
 - [ ] AI-powered auto-categorization
 - [ ] Natural language commands
+- [ ] More language support (Chinese, Spanish, French)
 
 ## 📄 License
 
@@ -197,8 +210,8 @@ MIT License - see [LICENSE](LICENSE) file for details
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/tab-ai/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/tab-ai/discussions)
+- **Issues**: [GitHub Issues](https://github.com/yourusername/tab-quest/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/tab-quest/discussions)
 - **Email**: support@tabquest.app
 
 ---

@@ -11,7 +11,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Framework**: WXT (Web Extension Tools) - Modern web extension framework
 - **Frontend**: React 18 + TypeScript
 - **State Management**: Zustand
-- **Storage**: WXT Storage Utilities (Chrome Storage API wrapper)
+- **Storage**: Chrome Storage API (sync and local)
+- **Internationalization**: i18next + react-i18next
 - **Styling**: Tailwind CSS with glass morphism design system
 - **Build System**: WXT + Vite
 - **Extension**: Chrome Extension Manifest V3
@@ -29,49 +30,56 @@ npm run dev
 npm run build
 
 # Package extension for distribution
-npm run zip
-
-# Package with source code (for store submission)
-npm run zip:firefox
+npm run package
 ```
 
 ## Project Structure
 
 ```
-tab-ai/
+tab-quest/
 ├── src/
 │   ├── entrypoints/      # WXT entry points
-│   │   ├── popup/        # Popup UI components
-│   │   │   ├── App.tsx
-│   │   │   └── main.tsx
-│   │   ├── options/      # Options page
+│   │   ├── popup.tsx     # Main popup entry
+│   │   ├── popup-component.tsx  # Popup UI component
+│   │   ├── options.tsx   # Options page
 │   │   └── background.ts # Background service worker
 │   ├── components/       # Shared React components
-│   │   ├── CategoryManager.tsx
-│   │   ├── Dashboard.tsx
-│   │   ├── TabList.tsx
-│   │   └── InfoTooltip.tsx
+│   │   ├── CategoryManager.tsx  # Category management UI
+│   │   ├── TabList.tsx          # Tab listing component
+│   │   ├── HelpModal.tsx        # Help documentation
+│   │   ├── LanguageSwitcher.tsx # Language selector
+│   │   ├── DashboardModal.tsx   # Analytics dashboard
+│   │   └── AIInsightCard.tsx    # AI insights display
+│   ├── lib/             # Core libraries
+│   │   ├── i18n.ts             # Internationalization setup
+│   │   └── tabClassifier.ts   # Tab classification logic
+│   ├── locales/         # Translation files
+│   │   ├── en.json      # English translations
+│   │   ├── ko.json      # Korean translations
+│   │   └── ja.json      # Japanese translations
 │   ├── store/           # Zustand stores
-│   │   └── categoryStore.ts
+│   │   ├── categoryStore.ts  # Category state management
+│   │   ├── tabStore.ts       # Tab state management
+│   │   └── aiStore.ts        # AI features state
 │   ├── utils/           # Utility functions
-│   │   ├── storage.ts        # WXT storage utilities
+│   │   ├── storage.ts        # Chrome storage utilities
 │   │   ├── tabTracker.ts     # Tab usage tracking
 │   │   ├── tabAnalyzer.ts    # Tab analysis logic
 │   │   ├── directOrganizer.ts # Direct tab organization
-│   │   ├── smartGrouping.ts  # Smart grouping algorithms
-│   │   └── debugTabTracker.ts # Debug utilities (dev only)
+│   │   ├── unifiedOrganizer.ts # Unified organization logic
+│   │   └── smartGrouping.ts  # Smart grouping algorithms
 │   ├── types/           # TypeScript definitions
-│   │   └── category.ts
-│   └── styles/          # CSS files
-│       ├── popup.css
-│       ├── options.css
-│       └── dashboard.css
+│   │   ├── category.ts  # Category types
+│   │   └── css.d.ts     # CSS module types
+│   └── tabs/            # Tab pages
+│       └── dashboard.tsx # Dashboard tab page
 ├── public/              # Static assets
-│   ├── icon/           # Extension icons
-│   ├── popup.html      # Popup HTML
-│   └── options.html    # Options HTML
+│   ├── icon/           # Extension icons (16, 32, 48, 128px)
+│   └── _favicon/       # Favicon files
 ├── wxt.config.ts       # WXT configuration
-└── package.json
+├── tailwind.config.js  # Tailwind CSS configuration
+├── tsconfig.json      # TypeScript configuration
+└── package.json       # Project dependencies
 ```
 
 ## Architecture Overview
@@ -89,12 +97,14 @@ tab-ai/
 - Chrome Storage API for persistence via WXT utilities
 
 ### Storage Architecture
-- **Sync Storage**: User preferences and categories
-  - `sync:categories`: User-defined tab categories
-  - `sync:categoryMapping`: Domain to category mappings
+- **Sync Storage**: User preferences and settings
+  - `categories`: User-defined tab categories
+  - `categoryMapping`: Domain to category mappings
+  - `language`: Selected interface language
 - **Local Storage**: Usage data and statistics
-  - `local:tabUsageData`: Tab usage metrics
-  - `local:dailyStats`: Daily productivity statistics
+  - `tabUsageData`: Tab usage metrics
+  - `dailyStats`: Daily productivity statistics
+  - `aiInsights`: AI-generated insights and suggestions
 
 ### Component Architecture
 - Glass morphism design with Tailwind CSS
@@ -109,7 +119,9 @@ tab-ai/
 3. **Category Management**: Custom categories with drag-and-drop organization
 4. **Duplicate Detection**: Automatically identify and remove duplicate tabs
 5. **Productivity Insights**: Daily statistics and usage patterns
-6. **Direct Chrome API Integration**: Fast tab management without background script delays
+6. **Multi-language Support**: Available in English, Korean, and Japanese
+7. **Direct Chrome API Integration**: Fast tab management without background script delays
+8. **Real-time Analytics**: Monitor browsing patterns and productivity scores
 
 ## Chrome Extension Permissions
 
@@ -117,6 +129,9 @@ Current permissions in manifest:
 - `tabs`: Access to tab information and management
 - `tabGroups`: Create and manage tab groups
 - `storage`: Store user preferences and usage data
+- `activeTab`: Access to the currently active tab
+- `windows`: Access to browser windows
+- `alarms`: Schedule periodic tasks for tracking
 
 ## Development Tips
 
@@ -127,9 +142,9 @@ Current permissions in manifest:
    - TypeScript configs are handled by WXT
 
 2. **Storage Management**:
-   - Use WXT's storage utilities for type-safe storage access
-   - Prefix keys with 'sync:' or 'local:' for storage area
-   - Storage schema defined in utils/storage.ts
+   - Use Chrome Storage API directly for persistence
+   - Separate sync storage for preferences and local storage for data
+   - Storage utilities defined in utils/storage.ts
 
 3. **Debugging**:
    - Debug utilities are conditionally loaded only in development
@@ -180,6 +195,22 @@ Current permissions in manifest:
 - Keep components small and focused
 - Use Tailwind utility classes consistently
 
+## Internationalization
+
+The extension supports multiple languages using i18next:
+- Language files stored in `src/locales/`
+- Dynamic language switching without reload
+- Persistent language preference in sync storage
+- Supports: English (en), Korean (ko), Japanese (ja)
+
+## Recent Updates
+
+- Added full i18n support for multi-language interface
+- Refactored to use WXT framework for better development experience
+- Implemented glass morphism design system
+- Added real-time tab tracking and analytics
+- Improved tab organization algorithms
+
 ## Future Considerations
 
 - Migration to more advanced AI features
@@ -187,3 +218,4 @@ Current permissions in manifest:
 - Cloud sync capabilities
 - Advanced analytics dashboard
 - Keyboard shortcuts support
+- More languages support
