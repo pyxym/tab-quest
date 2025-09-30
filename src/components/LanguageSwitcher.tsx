@@ -1,43 +1,63 @@
 import React, { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
+/**
+ * 지원 언어 목록
+ */
 const languages = [
-  { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'ko', name: '한국어', flag: '🇰🇷' },
-  { code: 'ja', name: '日本語', flag: '🇯🇵' }
+  { code: 'en', name: 'English', flag: '🇺🇸' },    // 영어
+  { code: 'ko', name: '한국어', flag: '🇰🇷' },       // 한국어
+  { code: 'ja', name: '日本語', flag: '🇯🇵' }        // 일본어
 ]
 
+/**
+ * 언어 전환 컴포넌트의 Props
+ */
 interface LanguageSwitcherProps {
-  inDropdown?: boolean
-  onLanguageChange?: () => void
+  inDropdown?: boolean          // 드롭다운 모드 여부 (설정 메뉴용)
+  onLanguageChange?: () => void  // 언어 변경 시 콜백
 }
 
+/**
+ * 언어 전환 컴포넌트
+ * 앱의 표시 언어를 변경할 수 있는 UI 제공
+ * 두 가지 모드 지원: 독립 버튼 모드, 드롭다운 메뉴 모드
+ *
+ * @component
+ * @param {LanguageSwitcherProps} props - 컴포넌트 속성
+ */
 export function LanguageSwitcher({ inDropdown = false, onLanguageChange }: LanguageSwitcherProps) {
   const { i18n } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const [currentLang, setCurrentLang] = useState(i18n.language)
 
+  // i18n 언어 변경 이벤트 리스너
   useEffect(() => {
-    // Update current language when i18n language changes
+    // 언어가 변경되면 현재 언어 상태 업데이트
     const handleLanguageChanged = (lng: string) => {
       setCurrentLang(lng)
     }
 
     i18n.on('languageChanged', handleLanguageChanged)
 
+    // 클린업: 이벤트 리스너 제거
     return () => {
       i18n.off('languageChanged', handleLanguageChanged)
     }
   }, [i18n])
 
+  /**
+   * 언어 변경 핸들러
+   * Chrome 스토리지에 저장하고 i18n 언어 변경
+   */
   const handleLanguageChange = async (langCode: string) => {
-    // Save to Chrome storage
+    // Chrome 동기화 스토리지에 저장
     await chrome.storage.sync.set({ language: langCode })
-    // Change i18n language
+    // i18n 언어 변경
     await i18n.changeLanguage(langCode)
     setCurrentLang(langCode)
     setIsOpen(false)
-    // Call the callback if provided
+    // 콜백 함수 실행 (있는 경우)
     if (onLanguageChange) {
       onLanguageChange()
     }

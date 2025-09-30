@@ -5,61 +5,85 @@ import { SimpleBarChart } from "./SimpleBarChart"
 import { SimpleLineChart } from "./SimpleLineChart"
 import { storageUtils } from "../utils/storage"
 
+/**
+ * 대시보드 모달 컴포넌트의 Props
+ */
 interface DashboardModalProps {
-  onClose: () => void
+  onClose: () => void  // 모달 닫기 핸들러
 }
 
+/**
+ * 탭 데이터 타입
+ * 개별 탭의 사용 통계 정보
+ */
 interface TabData {
-  id: number
-  url: string
-  title: string
-  domain: string
-  category: string
-  lastAccessed: number
-  accessCount: number
-  totalTimeSpent?: number
+  id: number                // 탭 ID
+  url: string               // 탭 URL
+  title: string             // 탭 제목
+  domain: string            // 도메인
+  category: string          // 카테고리
+  lastAccessed: number      // 마지막 접근 시간
+  accessCount: number       // 접근 횟수
+  totalTimeSpent?: number   // 총 사용 시간 (선택적)
 }
 
+/**
+ * 카테고리 통계 타입
+ * 카테고리별 탭 사용 현황
+ */
 interface CategoryStats {
-  name: string
-  count: number
-  percentage: number
-  color: string
+  name: string        // 카테고리 이름
+  count: number       // 탭 개수
+  percentage: number  // 비율 (%)
+  color: string       // 표시 색상
 }
 
+/**
+ * 대시보드 모달 컴포넌트
+ * 탭 사용 통계, 생산성 점수, 카테고리 분석 등을 시각화
+ *
+ * @component
+ * @param {DashboardModalProps} props - 컴포넌트 속성
+ */
 export const DashboardModal: React.FC<DashboardModalProps> = ({ onClose }) => {
-  const [tabs, setTabs] = useState<TabData[]>([])
-  const [categoryStats, setCategoryStats] = useState<CategoryStats[]>([])
-  const [productivityScore, setProductivityScore] = useState(0)
-  const [mostVisited, setMostVisited] = useState<TabData[]>([])
-  const [totalTabs, setTotalTabs] = useState(0)
-  const [duplicates, setDuplicates] = useState(0)
-  const [isLoading, setIsLoading] = useState(true)
-  const [categoryTimeData, setCategoryTimeData] = useState<any[]>([])
-  const [productivityTrend, setProductivityTrend] = useState<any[]>([])
-  const [totalTimeToday, setTotalTimeToday] = useState(0)
+  // 대시보드 상태 관리
+  const [tabs, setTabs] = useState<TabData[]>([])                            // 탭 목록
+  const [categoryStats, setCategoryStats] = useState<CategoryStats[]>([])    // 카테고리별 통계
+  const [productivityScore, setProductivityScore] = useState(0)              // 생산성 점수
+  const [mostVisited, setMostVisited] = useState<TabData[]>([])             // 가장 많이 방문한 탭
+  const [totalTabs, setTotalTabs] = useState(0)                             // 전체 탭 수
+  const [duplicates, setDuplicates] = useState(0)                           // 중복 탭 수
+  const [isLoading, setIsLoading] = useState(true)                          // 로딩 상태
+  const [categoryTimeData, setCategoryTimeData] = useState<any[]>([])       // 카테고리별 시간 데이터
+  const [productivityTrend, setProductivityTrend] = useState<any[]>([])     // 생산성 추이
+  const [totalTimeToday, setTotalTimeToday] = useState(0)                   // 오늘 총 사용 시간
 
+  // 컴포넌트 마운트 시 대시보드 데이터 로드
   useEffect(() => {
     loadDashboardData()
   }, [])
 
+  /**
+   * 대시보드 데이터를 로드하는 비동기 함수
+   * 탭 사용 통계, 카테고리 분석, 생산성 점수 등을 계산
+   */
   async function loadDashboardData() {
     setIsLoading(true)
     try {
-      // Get current tabs count
+      // 현재 열린 탭 개수 가져오기
       const allTabs = await chrome.tabs.query({})
       setTotalTabs(allTabs.length)
 
-      // Get categories from storage
+      // 저장소에서 카테고리 정보 가져오기
       const categories = await storageUtils.getCategories()
-      
-      // Get usage data from TabTracker
+
+      // TabTracker에서 사용 데이터 가져오기
       const { tabUsageData, todayStats, dailyStats } = await TabTracker.getUsageData()
-      
-      // Convert usage data to TabData format and sort by access count
+
+      // 사용 데이터를 TabData 형식으로 변환하고 접근 횟수로 정렬
       const tabsArray: TabData[] = tabUsageData
         .map((usage: any) => ({
-          id: 0, // Not needed for historical data
+          id: 0, // 히스토리 데이터에는 ID 불필요
           url: usage.url,
           title: usage.title,
           domain: usage.domain,
@@ -68,31 +92,32 @@ export const DashboardModal: React.FC<DashboardModalProps> = ({ onClose }) => {
           accessCount: usage.accessCount,
           totalTimeSpent: usage.totalTimeSpent
         }))
-        .sort((a, b) => b.accessCount - a.accessCount)
-      
+        .sort((a, b) => b.accessCount - a.accessCount)  // 접근 횟수 내림차순 정렬
+
       setTabs(tabsArray)
 
-      // Calculate category statistics
+      // 카테고리별 통계 계산
       const categoryCount: Record<string, number> = {}
       tabsArray.forEach(tab => {
         const category = tab.category || "other"
         categoryCount[category] = (categoryCount[category] || 0) + 1
       })
 
+      // 카테고리 통계 객체 생성
       const stats: CategoryStats[] = categories.map((cat: any) => ({
         name: cat.name,
         count: categoryCount[cat.id] || 0,
         percentage: tabsArray.length > 0 ? Math.round(((categoryCount[cat.id] || 0) / tabsArray.length) * 100) : 0,
         color: getColorHex(cat.color)
-      })).filter((stat: CategoryStats) => stat.count > 0)
+      })).filter((stat: CategoryStats) => stat.count > 0)  // 탭이 있는 카테고리만 필터링
 
       setCategoryStats(stats)
 
-      // Use today's productivity score if available
+      // 오늘의 생산성 점수가 있으면 사용, 없으면 계산
       if (todayStats?.productivityScore !== undefined) {
         setProductivityScore(todayStats.productivityScore)
       } else {
-        // Calculate from current data if no today stats
+        // 현재 데이터로 생산성 점수 계산
         const workTabs = categoryCount["work"] || 0
         const productivityTabs = categoryCount["productivity"] || 0
         const entertainmentTabs = categoryCount["entertainment"] || 0

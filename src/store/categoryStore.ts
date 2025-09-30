@@ -4,40 +4,52 @@ import { DEFAULT_CATEGORIES } from "../types/category"
 import { ErrorBoundary, DataValidator } from "../utils/errorBoundary"
 import { storageUtils, watchCategories, watchCategoryMapping } from "../utils/storage"
 
+/**
+ * 카테고리 스토어 인터페이스
+ * 카테고리 관리를 위한 상태와 액션 정의
+ */
 interface CategoryStore {
-  categories: Category[]
-  categoryMapping: CategoryMapping
-  
-  // Actions
-  loadCategories: () => Promise<void>
-  addCategory: (category: Omit<Category, "id" | "createdAt">) => Promise<string>
-  updateCategory: (id: string, updates: Partial<Category>) => Promise<void>
-  deleteCategory: (id: string) => Promise<void>
-  assignDomainToCategory: (domain: string, categoryId: string) => Promise<void>
-  getCategoryForDomain: (domain: string) => string
-  resetToDefaults: () => Promise<void>
-  reorderCategories: (categories: Category[]) => Promise<void>
+  // 상태
+  categories: Category[]           // 카테고리 목록
+  categoryMapping: CategoryMapping  // 도메인-카테고리 매핑
+
+  // 액션
+  loadCategories: () => Promise<void>                                           // 카테고리 로드
+  addCategory: (category: Omit<Category, "id" | "createdAt">) => Promise<string>  // 카테고리 추가
+  updateCategory: (id: string, updates: Partial<Category>) => Promise<void>     // 카테고리 업데이트
+  deleteCategory: (id: string) => Promise<void>                                // 카테고리 삭제
+  assignDomainToCategory: (domain: string, categoryId: string) => Promise<void> // 도메인을 카테고리에 할당
+  getCategoryForDomain: (domain: string) => string                             // 도메인의 카테고리 가져오기
+  resetToDefaults: () => Promise<void>                                         // 기본값으로 초기화
+  reorderCategories: (categories: Category[]) => Promise<void>                 // 카테고리 순서 변경
 }
 
+/**
+ * 카테고리 스토어
+ * Zustand를 사용한 카테고리 상태 관리
+ */
 export const useCategoryStore = create<CategoryStore>((set, get) => ({
   categories: DEFAULT_CATEGORIES,
   categoryMapping: {},
 
+  /**
+   * 저장된 카테고리 로드 및 기본 카테고리와 병합
+   */
   loadCategories: async () => {
     const categories = await storageUtils.getCategories()
     const categoryMapping = await storageUtils.getCategoryMapping()
-    
+
     if (categories.length > 0) {
-      // Merge default categories with saved ones
+      // 저장된 카테고리와 기본 카테고리 병합
       const savedCategories = categories
       const savedIds = new Set(savedCategories.map(c => c.id))
-      
-      // Add any new default categories that don't exist
+
+      // 저장된 카테고리에 없는 새 기본 카테고리 찾기
       const newDefaultCategories = DEFAULT_CATEGORIES.filter(
         defaultCat => !savedIds.has(defaultCat.id)
       )
-      
-      // Create a map to preserve user edits
+
+      // 사용자 수정사항을 보존하기 위한 맵 생성
       const categoryMap = new Map<string, Category>()
       
       // First, add saved categories (including edited defaults)

@@ -1,37 +1,49 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
+/**
+ * 도움말 모달 컴포넌트의 Props
+ */
 interface HelpModalProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean     // 모달 열림 상태
+  onClose: () => void  // 모달 닫기 핸들러
 }
 
+/**
+ * 도움말 모달 컴포넌트
+ * TabQuest 확장 프로그램의 주요 기능 설명과 사용법 제공
+ *
+ * @component
+ * @param {HelpModalProps} props - 컴포넌트 속성
+ */
 export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
   const { t } = useTranslation()
 
+  // 모달이 닫혀있으면 렌더링하지 않음
   if (!isOpen) return null
-  
+
+  // 기능 설명 데이터 (다국어 지원)
   const features = [
     {
-      icon: '🤖',
+      icon: '🤖',  // AI 스마트 정리
       title: t('modal.help.features.aiSmartOrganize.title'),
       description: t('modal.help.features.aiSmartOrganize.description'),
       details: t('modal.help.features.aiSmartOrganize.details', { returnObjects: true }) as string[]
     },
     {
-      icon: '🏷️',
+      icon: '🏷️',  // 카테고리 관리
       title: t('modal.help.features.categoryManagement.title'),
       description: t('modal.help.features.categoryManagement.description'),
       details: t('modal.help.features.categoryManagement.details', { returnObjects: true }) as string[]
     },
     {
-      icon: '📊',
+      icon: '📊',  // 생산성 인사이트
       title: t('modal.help.features.productivityInsights.title'),
       description: t('modal.help.features.productivityInsights.description'),
       details: t('modal.help.features.productivityInsights.details', { returnObjects: true }) as string[]
     },
     {
-      icon: '🧹',
+      icon: '🧹',  // 스마트 정리
       title: t('modal.help.features.smartCleanup.title'),
       description: t('modal.help.features.smartCleanup.description'),
       details: t('modal.help.features.smartCleanup.details', { returnObjects: true }) as string[]
