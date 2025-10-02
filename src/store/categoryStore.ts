@@ -2,40 +2,54 @@ import { create } from "zustand"
 import type { Category, CategoryMapping } from "../types/category"
 import { DEFAULT_CATEGORIES } from "../types/category"
 import { ErrorBoundary, DataValidator } from "../utils/errorBoundary"
+import { storageUtils, watchCategories, watchCategoryMapping } from "../utils/storage"
 
+/**
+ * 카테고리 스토어 인터페이스
+ * 카테고리 관리를 위한 상태와 액션 정의
+ */
 interface CategoryStore {
-  categories: Category[]
-  categoryMapping: CategoryMapping
-  
-  // Actions
-  loadCategories: () => Promise<void>
-  addCategory: (category: Omit<Category, "id" | "createdAt">) => Promise<string>
-  updateCategory: (id: string, updates: Partial<Category>) => Promise<void>
-  deleteCategory: (id: string) => Promise<void>
-  assignDomainToCategory: (domain: string, categoryId: string) => Promise<void>
-  getCategoryForDomain: (domain: string) => string
-  resetToDefaults: () => Promise<void>
-  reorderCategories: (categories: Category[]) => Promise<void>
+  // 상태
+  categories: Category[]           // 카테고리 목록
+  categoryMapping: CategoryMapping  // 도메인-카테고리 매핑
+
+  // 액션
+  loadCategories: () => Promise<void>                                           // 카테고리 로드
+  addCategory: (category: Omit<Category, "id" | "createdAt">) => Promise<string>  // 카테고리 추가
+  updateCategory: (id: string, updates: Partial<Category>) => Promise<void>     // 카테고리 업데이트
+  deleteCategory: (id: string) => Promise<void>                                // 카테고리 삭제
+  assignDomainToCategory: (domain: string, categoryId: string) => Promise<void> // 도메인을 카테고리에 할당
+  getCategoryForDomain: (domain: string) => string                             // 도메인의 카테고리 가져오기
+  resetToDefaults: () => Promise<void>                                         // 기본값으로 초기화
+  reorderCategories: (categories: Category[]) => Promise<void>                 // 카테고리 순서 변경
 }
 
+/**
+ * 카테고리 스토어
+ * Zustand를 사용한 카테고리 상태 관리
+ */
 export const useCategoryStore = create<CategoryStore>((set, get) => ({
   categories: DEFAULT_CATEGORIES,
   categoryMapping: {},
 
+  /**
+   * 저장된 카테고리 로드 및 기본 카테고리와 병합
+   */
   loadCategories: async () => {
-    const result = await chrome.storage.sync.get(["categories", "categoryMapping"])
-    
-    if (result.categories) {
-      // Merge default categories with saved ones
-      const savedCategories = result.categories as Category[]
+    const categories = await storageUtils.getCategories()
+    const categoryMapping = await storageUtils.getCategoryMapping()
+
+    if (categories.length > 0) {
+      // 저장된 카테고리와 기본 카테고리 병합
+      const savedCategories = categories
       const savedIds = new Set(savedCategories.map(c => c.id))
-      
-      // Add any new default categories that don't exist
+
+      // 저장된 카테고리에 없는 새 기본 카테고리 찾기
       const newDefaultCategories = DEFAULT_CATEGORIES.filter(
         defaultCat => !savedIds.has(defaultCat.id)
       )
-      
-      // Create a map to preserve user edits
+
+      // 사용자 수정사항을 보존하기 위한 맵 생성
       const categoryMap = new Map<string, Category>()
       
       // First, add saved categories (including edited defaults)
@@ -54,8 +68,8 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
       })
       
       // Migrate any 'other' mappings to 'uncategorized'
-      let updatedMapping = result.categoryMapping || {}
-      if (result.categoryMapping) {
+      let updatedMapping = categoryMapping || {}
+      if (categoryMapping) {
         let needsUpdate = false
         Object.keys(updatedMapping).forEach(domain => {
           if (updatedMapping[domain] === 'other') {
@@ -64,7 +78,7 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
           }
         })
         if (needsUpdate) {
-          await chrome.storage.sync.set({ categoryMapping: updatedMapping })
+          await storageUtils.setCategoryMapping(updatedMapping)
         }
       }
       
@@ -86,13 +100,11 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
       })
       
       // Update storage with merged categories
-      await chrome.storage.sync.set({ categories: mergedCategories })
+      await storageUtils.setCategories(mergedCategories)
     } else {
       // First time setup
-      await chrome.storage.sync.set({ 
-        categories: DEFAULT_CATEGORIES,
-        categoryMapping: {}
-      })
+      await storageUtils.setCategories(DEFAULT_CATEGORIES)
+      await storageUtils.setCategoryMapping({})
       set({ 
         categories: DEFAULT_CATEGORIES,
         categoryMapping: {}
@@ -127,12 +139,8 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
         const updatedCategories = [...categories, newCategory]
         
         // Check storage quota before saving
-        const { quota, usage } = await chrome.storage.sync.getBytesInUse(null)
-        if (usage > quota * 0.9) {
-          throw new Error('Storage quota exceeded')
-        }
-        
-        await chrome.storage.sync.set({ categories: updatedCategories })
+        // WXT handles storage quota internally
+        await storageUtils.setCategories(updatedCategories)
         set({ categories: updatedCategories })
         
         return newCategory.id
@@ -155,7 +163,7 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
       cat.id === id ? { ...cat, ...updates } : cat
     )
     
-    await chrome.storage.sync.set({ categories: updatedCategories })
+    await storageUtils.setCategories(updatedCategories)
     set({ categories: updatedCategories })
   },
 
@@ -180,10 +188,8 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
       }
     })
     
-    await chrome.storage.sync.set({ 
-      categories: updatedCategories,
-      categoryMapping: updatedMapping
-    })
+    await storageUtils.setCategories(updatedCategories)
+    await storageUtils.setCategoryMapping(updatedMapping)
     set({ 
       categories: updatedCategories,
       categoryMapping: updatedMapping
@@ -205,7 +211,7 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
         }
         
         const mapping = { ...get().categoryMapping, [normalizedDomain]: categoryId }
-        await chrome.storage.sync.set({ categoryMapping: mapping })
+        await storageUtils.setCategoryMapping(mapping)
         set({ categoryMapping: mapping })
       },
       undefined,
@@ -260,10 +266,8 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
   },
 
   resetToDefaults: async () => {
-    await chrome.storage.sync.set({ 
-      categories: DEFAULT_CATEGORIES,
-      categoryMapping: {}
-    })
+    await storageUtils.setCategories(DEFAULT_CATEGORIES)
+    await storageUtils.setCategoryMapping({})
     set({ 
       categories: DEFAULT_CATEGORIES,
       categoryMapping: {}
@@ -276,7 +280,7 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
     const otherCategories = newCategories.filter(c => c.id !== 'uncategorized')
     const sorted = uncategorized ? [...otherCategories, uncategorized] : newCategories
     
-    await chrome.storage.sync.set({ categories: sorted })
+    await storageUtils.setCategories(sorted)
     set({ categories: sorted })
   }
 }))

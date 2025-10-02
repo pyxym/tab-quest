@@ -29,6 +29,10 @@ yarn-error.log*
 .plasmo
 .cache
 
+# WXT output
+.output/
+.wxt/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

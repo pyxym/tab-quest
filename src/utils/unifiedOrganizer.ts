@@ -3,11 +3,11 @@ import { useCategoryStore } from '../store/categoryStore'
 
 export async function organizeTabsUnified(categories: any[]) {
   try {
-    console.log('[TabAI Unified] Starting organization...')
-    console.log('[TabAI Unified] Categories order:', categories.map(c => c.name))
+    console.log('[TabQuest Unified] Starting organization...')
+    console.log('[TabQuest Unified] Categories order:', categories.map(c => c.name))
     
     const tabs = await chrome.tabs.query({ currentWindow: true })
-    console.log(`[TabAI Unified] Found ${tabs.length} tabs`)
+    console.log(`[TabQuest Unified] Found ${tabs.length} tabs`)
     
     // First, ungroup all tabs
     const allTabIds = tabs
@@ -17,9 +17,9 @@ export async function organizeTabsUnified(categories: any[]) {
     if (allTabIds.length > 0) {
       try {
         await chrome.tabs.ungroup(allTabIds)
-        console.log('[TabAI Unified] Ungrouped all tabs')
+        console.log('[TabQuest Unified] Ungrouped all tabs')
       } catch (e) {
-        console.log('[TabAI Unified] Some tabs already ungrouped')
+        console.log('[TabQuest Unified] Some tabs already ungrouped')
       }
     }
     
@@ -43,9 +43,9 @@ export async function organizeTabsUnified(categories: any[]) {
         const domain = new URL(tab.url).hostname.replace(/^www\./, '')
         // Use the store's getCategoryForDomain which checks both mappings and category domains
         categoryId = getCategoryForDomain(domain)
-        console.log(`[TabAI Unified] ${domain} -> ${categoryId}`)
+        console.log(`[TabQuest Unified] ${domain} -> ${categoryId}`)
       } catch (error) {
-        console.error(`[TabAI Unified] Error parsing URL: ${tab.url}`)
+        console.error(`[TabQuest Unified] Error parsing URL: ${tab.url}`)
         categoryId = 'uncategorized'
       }
       
@@ -64,7 +64,7 @@ export async function organizeTabsUnified(categories: any[]) {
       const categoryTabs = categorizedTabs.get(category.id)
       if (!categoryTabs || categoryTabs.length === 0) continue
       
-      console.log(`[TabAI Unified] Moving ${categoryTabs.length} tabs for category: ${category.name}`)
+      console.log(`[TabQuest Unified] Moving ${categoryTabs.length} tabs for category: ${category.name}`)
       
       for (const tab of categoryTabs) {
         if (tab.id) {
@@ -78,7 +78,7 @@ export async function organizeTabsUnified(categories: any[]) {
       try {
         await chrome.tabs.move(reorderedTabIds[i], { index: i })
       } catch (error) {
-        console.error(`[TabAI Unified] Failed to move tab:`, error)
+        console.error(`[TabQuest Unified] Failed to move tab:`, error)
       }
     }
     
@@ -94,17 +94,24 @@ export async function organizeTabsUnified(categories: any[]) {
       
       try {
         const groupId = await chrome.tabs.group({ tabIds })
+        // Create abbreviation for category name
+        const abbreviation = category.name
+          .split(' ')
+          .map((word: string) => word.charAt(0).toUpperCase())
+          .join('')
+          .slice(0, 3) // Max 3 characters
+        
         await chrome.tabGroups.update(groupId, {
-          title: category.name,
+          title: abbreviation,
           color: category.color as chrome.tabGroups.ColorEnum,
           collapsed: false
         })
         
         groupsCreated++
         tabsProcessed += tabIds.length
-        console.log(`[TabAI Unified] Created group for ${category.name} with ${tabIds.length} tabs`)
+        console.log(`[TabQuest Unified] Created group for ${category.name} with ${tabIds.length} tabs`)
       } catch (error) {
-        console.error(`[TabAI Unified] Failed to create group for ${category.name}:`, error)
+        console.error(`[TabQuest Unified] Failed to create group for ${category.name}:`, error)
       }
     }
     
@@ -120,7 +127,7 @@ export async function organizeTabsUnified(categories: any[]) {
     }
     
   } catch (error) {
-    console.error('[TabAI Unified] Organization failed:', error)
+    console.error('[TabQuest Unified] Organization failed:', error)
     throw error
   }
 }

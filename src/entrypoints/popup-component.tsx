@@ -1,21 +1,25 @@
 import React, { useEffect, useState } from "react"
-import { AILogo } from "./components/AILogo"
-import { AIInsightCard } from "./components/AIInsightCard"
-import { ProductivityScore } from "./components/ProductivityScore"
-import { CategoryManager } from "./components/CategoryManager"
-import { TabList } from "./components/TabList"
-import { DashboardModal } from "./components/DashboardModal"
-import { InfoTooltip } from "./components/InfoTooltip"
-import { HelpModal } from "./components/HelpModal"
-import { AILearningStatus } from "./components/AILearningStatus"
-import { useTabStore } from "./store/tabStore"
-import { useAIStore } from "./store/aiStore"
-import { useCategoryStore } from "./store/categoryStore"
-import { calculateProductivityScore, findDuplicates } from "./utils/tabAnalyzer"
-import { organizeTabsUnified } from "./utils/unifiedOrganizer"
-import "../style.css"
+import { useTranslation } from 'react-i18next'
+import { AILogo } from "../components/AILogo"
+import { AIInsightCard } from "../components/AIInsightCard"
+import { ProductivityScore } from "../components/ProductivityScore"
+import { CategoryManager } from "../components/CategoryManager"
+import { TabList } from "../components/TabList"
+import { DashboardModal } from "../components/DashboardModal"
+import { InfoTooltip } from "../components/InfoTooltip"
+import { HelpModal } from "../components/HelpModal"
+import { AILearningStatus } from "../components/AILearningStatus"
+import { LanguageSwitcher } from "../components/LanguageSwitcher"
+import { useTabStore } from "../store/tabStore"
+import { useAIStore } from "../store/aiStore"
+import { useCategoryStore } from "../store/categoryStore"
+import { calculateProductivityScore } from "../utils/tabAnalyzer"
+import { organizeTabsUnified } from "../utils/unifiedOrganizer"
+import { storageUtils } from "../utils/storage"
+import "../styles/popup.css"
 
 function IndexPopup() {
+  const { t, ready } = useTranslation()
   const { tabs, setTabs } = useTabStore()
   const { insights, productivityScore, addInsight, removeInsight, setProductivityScore } = useAIStore()
   const { categories, loadCategories } = useCategoryStore()
@@ -25,7 +29,8 @@ function IndexPopup() {
   const [showTabList, setShowTabList] = useState(false)
   const [showDashboard, setShowDashboard] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
-  
+  const [showSettingsDropdown, setShowSettingsDropdown] = useState(false)
+
   useEffect(() => {
     async function init() {
       await loadCategories()
@@ -36,23 +41,23 @@ function IndexPopup() {
   }, [loadCategories])
   
   async function checkFirstTimeUser() {
-    const result = await chrome.storage.local.get(['hasSeenWelcome'])
-    if (!result.hasSeenWelcome) {
+    const hasSeenWelcome = await storageUtils.getHasSeenWelcome()
+    if (!hasSeenWelcome && t) {
       // Show welcome message for first-time users
       addInsight({
         id: 'welcome-message',
         type: 'tip',
-        title: '👋 TabAI에 오신 것을 환영합니다!',
-        description: 'AI 기반 탭 관리로 브라우징 경험을 혁신하세요. 도움말 버튼(?)을 눌러 전체 가이드를 확인하세요.',
+        title: t('insights.welcome.title'),
+        description: t('insights.welcome.description'),
         priority: 'high',
         timestamp: Date.now(),
         actionable: {
-          label: '가이드 보기',
+          label: t('insights.welcome.action'),
           action: () => setShowHelp(true)
         }
       })
       
-      await chrome.storage.local.set({ hasSeenWelcome: true })
+      await storageUtils.setHasSeenWelcome(true)
     }
   }
   
@@ -89,19 +94,19 @@ function IndexPopup() {
       addInsight({
         id: "duplicates",
         type: "alert",
-        title: `${totalDuplicates} duplicate tabs detected`,
-        description: `You have multiple tabs open for the same pages. Clean them up to save memory.`,
+        title: t('insights.duplicates.title', { count: totalDuplicates }),
+        description: t('insights.duplicates.description'),
         priority: "high",
         timestamp: Date.now(),
         actionable: {
-          label: "Remove duplicates",
+          label: t('insights.duplicates.action'),
           action: async () => {
             try {
-              console.log('[TabAI] Starting duplicate removal...')
+              console.log('[TabQuest] Starting duplicate removal...')
               
               // Get all tabs in current window
               const tabs = await chrome.tabs.query({ currentWindow: true })
-              console.log(`[TabAI] Found ${tabs.length} total tabs`)
+              console.log(`[TabQuest] Found ${tabs.length} total tabs`)
               
               const urlMap = new Map<string, chrome.tabs.Tab[]>()
               
@@ -135,7 +140,7 @@ function IndexPopup() {
                 }
               })
               
-              console.log('[TabAI] URL groups:', Array.from(urlMap.entries()).map(([url, tabs]) => `${url}: ${tabs.length}`))
+              console.log('[TabQuest] URL groups:', Array.from(urlMap.entries()).map(([url, tabs]) => `${url}: ${tabs.length}`))
               
               // Find and close duplicates
               let closedCount = 0
@@ -143,22 +148,23 @@ function IndexPopup() {
               
               for (const [url, tabGroup] of urlMap) {
                 if (tabGroup.length > 1) {
-                  console.log(`[TabAI] Found ${tabGroup.length} tabs for ${url}`)
+                  console.log(`[TabQuest] Found ${tabGroup.length} tabs for ${url}`)
                   
                   // Sort by id to keep the oldest tab
                   tabGroup.sort((a, b) => (a.id || 0) - (b.id || 0))
                   
                   // Keep the first tab, mark others for closing
                   for (let i = 1; i < tabGroup.length; i++) {
-                    if (tabGroup[i].id) {
-                      tabsToClose.push(tabGroup[i].id)
+                    const tabId = tabGroup[i].id
+                    if (tabId !== undefined) {
+                      tabsToClose.push(tabId)
                       closedCount++
                     }
                   }
                 }
               }
               
-              console.log(`[TabAI] Will close ${closedCount} duplicate tabs`)
+              console.log(`[TabQuest] Will close ${closedCount} duplicate tabs`)
               
               // Close all duplicate tabs at once
               if (tabsToClose.length > 0) {
@@ -171,13 +177,13 @@ function IndexPopup() {
                 addInsight({
                   id: `duplicates-removed-${Date.now()}`,
                   type: "tip",
-                  title: "✅ Duplicates Removed",
-                  description: `Successfully closed ${closedCount} duplicate tab${closedCount > 1 ? 's' : ''}`,
+                  title: t('insights.duplicatesRemoved.title'),
+                  description: t('insights.duplicatesRemoved.description', { count: closedCount }),
                   priority: "medium",
                   timestamp: Date.now()
                 })
               } else {
-                console.log('[TabAI] No duplicates found to remove')
+                console.log('[TabQuest] No duplicates found to remove')
               }
               
               // Reload tabs and analysis
@@ -186,7 +192,7 @@ function IndexPopup() {
               }, 500)
               
             } catch (error) {
-              console.error('[TabAI] Failed to remove duplicates:', error)
+              console.error('[TabQuest] Failed to remove duplicates:', error)
               alert('Failed to remove duplicate tabs. Please check console for details.')
             }
           }
@@ -199,12 +205,12 @@ function IndexPopup() {
       addInsight({
         id: "high-tab-count",
         type: "suggestion",
-        title: `${tabs.length} tabs are slowing you down`,
-        description: "Consider using AI Smart Organize to group related tabs together.",
+        title: t('insights.highTabCount.title', { count: tabs.length }),
+        description: t('insights.highTabCount.description'),
         priority: tabs.length > 30 ? "high" : "medium",
         timestamp: Date.now(),
         actionable: {
-          label: "Organize now",
+          label: t('insights.highTabCount.action'),
           action: handleSmartOrganize
         }
       })
@@ -219,8 +225,8 @@ function IndexPopup() {
         addInsight({
           id: "category-focus",
           type: "pattern",
-          title: `Heavy ${topCategory[0]} usage detected`,
-          description: `You have ${topCategory[1]} ${topCategory[0]} tabs open. Consider creating a dedicated workspace.`,
+          title: t('insights.categoryFocus.title', { category: topCategory[0] }),
+          description: t('insights.categoryFocus.description', { count: topCategory[1], category: topCategory[0] }),
           priority: "low",
           timestamp: Date.now()
         })
@@ -271,23 +277,23 @@ function IndexPopup() {
   
   
   async function handleAIOrganize() {
-    console.log('[TabAI] handleAIOrganize called, current isOrganizing:', isOrganizing)
+    console.log('[TabQuest] handleAIOrganize called, current isOrganizing:', isOrganizing)
     if (isOrganizing) {
-      console.log('[TabAI] Already organizing, skipping...')
+      console.log('[TabQuest] Already organizing, skipping...')
       return
     }
     
     setIsOrganizing(true)
-    console.log('[TabAI] Set isOrganizing to true')
+    console.log('[TabQuest] Set isOrganizing to true')
     
     try {
-      console.log('[TabAI] Starting Smart organization...')
-      console.log('[TabAI] Categories available:', categories?.length || 0)
+      console.log('[TabQuest] Starting Smart organization...')
+      console.log('[TabQuest] Categories available:', categories?.length || 0)
       
       // Use the unified organization function
       const result = await organizeTabsUnified(categories)
       
-      console.log('[TabAI] Organization result:', result)
+      console.log('[TabQuest] Organization result:', result)
       
       if (!result) {
         throw new Error('No response from background script')
@@ -344,7 +350,7 @@ function IndexPopup() {
       // Check if it's a timeout error
       if (error.message?.includes('Timeout') || error.message?.includes('timeout')) {
         // Try fallback to smartOrganize
-        console.log('[TabAI] Timeout occurred, trying smartOrganize as fallback')
+        console.log('[TabQuest] Timeout occurred, trying smartOrganize as fallback')
         try {
           const fallbackResult = await chrome.runtime.sendMessage({ 
             action: "smartOrganize"
@@ -354,7 +360,7 @@ function IndexPopup() {
             return
           }
         } catch (fallbackError) {
-          console.error('[TabAI] Fallback also failed:', fallbackError)
+          console.error('[TabQuest] Fallback also failed:', fallbackError)
         }
         
         addInsight({
@@ -376,7 +382,7 @@ function IndexPopup() {
         })
       }
     } finally {
-      console.log('[TabAI] Finally block: setting isOrganizing to false')
+      console.log('[TabQuest] Finally block: setting isOrganizing to false')
       // Ensure state is reset
       setIsOrganizing(false)
       // Reload data
@@ -408,16 +414,24 @@ function IndexPopup() {
     }
   }
   
+  if (!ready) {
+    return (
+      <div className="w-[480px] h-[600px] flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
+        <div className="text-white">Loading...</div>
+      </div>
+    )
+  }
+
   return (
     <>
       <div className="w-[480px] h-[600px] relative overflow-hidden">
-        {/* Dynamic gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500"></div>
+        {/* Dynamic gradient background - dark theme */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900"></div>
         
-        {/* Animated gradient orbs */}
-        <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-        <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+        {/* Animated gradient orbs - subtle for dark theme */}
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-600 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
+        <div className="absolute top-0 -right-4 w-72 h-72 bg-indigo-600 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-600 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
         {/* Glass container */}
         <div className="absolute inset-0 p-4">
           <div className="h-full glass-main rounded-[24px] flex flex-col">
@@ -427,8 +441,8 @@ function IndexPopup() {
               <div className="flex items-center gap-3">
                 <AILogo size="medium" />
                 <div>
-                  <h1 className="font-bold text-lg ai-gradient-text">TabAI</h1>
-                  <p className="text-xs glass-text opacity-70">Tab Assistant</p>
+                  <h1 className="font-bold text-lg ai-gradient-text">TabQuest</h1>
+                  <p className="text-xs glass-text opacity-70">{t('header.subtitle')}</p>
                 </div>
               </div>
             <div className="flex items-center gap-2">
@@ -459,30 +473,11 @@ function IndexPopup() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                 </svg>
               </button>
-              <div className="relative group">
+              <div className="relative">
                 <button
                   className="glass-card p-2 transition-all hover:scale-105"
                   title="Settings"
-                  onClick={(e) => {
-                    // Toggle dropdown visibility on click
-                    const dropdown = e.currentTarget.nextElementSibling;
-                    if (dropdown) {
-                      dropdown.classList.toggle('opacity-0');
-                      dropdown.classList.toggle('invisible');
-                      dropdown.classList.toggle('opacity-100');
-                      dropdown.classList.toggle('visible');
-                    }
-                  }}
-                  onBlur={(e) => {
-                    // Close dropdown when focus leaves the button and dropdown
-                    setTimeout(() => {
-                      const dropdown = e.currentTarget.nextElementSibling;
-                      if (dropdown && !dropdown.contains(document.activeElement)) {
-                        dropdown.classList.add('opacity-0', 'invisible');
-                        dropdown.classList.remove('opacity-100', 'visible');
-                      }
-                    }, 200);
-                  }}
+                  onClick={() => setShowSettingsDropdown(!showSettingsDropdown)}
                 >
                   <svg className="w-4 h-4 glass-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -490,28 +485,39 @@ function IndexPopup() {
                   </svg>
                 </button>
                 {/* Settings Dropdown */}
-                <div className="absolute right-0 mt-2 w-48 glass-card rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 border border-white/20">
-                  <button
-                    onClick={async () => {
-                      if (confirm('AI 학습 데이터를 초기화하시겠습니까?\n\n카테고리 설정은 유지되며, AI가 학습한 패턴만 초기화됩니다.')) {
-                        await chrome.storage.local.clear()
-                        loadTabsAndAnalyze()
-                        addInsight({
-                          id: `data-cleared-${Date.now()}`,
-                          type: 'tip',
-                          title: '✨ AI 데이터 초기화 완료',
-                          description: 'AI가 새로운 패턴을 학습할 준비가 되었습니다.',
-                          priority: 'low',
-                          timestamp: Date.now()
-                        })
-                      }
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm glass-text hover:bg-white/20 transition-colors flex items-center gap-2 rounded-lg"
-                  >
-                    <span>🗑️</span>
-                    <span>AI 데이터 초기화</span>
-                  </button>
-                </div>
+                {showSettingsDropdown && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setShowSettingsDropdown(false)}
+                    />
+                    <div className="absolute right-0 mt-2 w-48 glass-card rounded-lg shadow-xl z-50 border border-white/20">
+                      <LanguageSwitcher inDropdown={true} onLanguageChange={() => setShowSettingsDropdown(false)} />
+                      <div className="border-t border-white/10 mx-2"></div>
+                      <button
+                        onClick={async () => {
+                          if (confirm(t('settings.clearData.confirm'))) {
+                            await storageUtils.clearLocalStorage()
+                            loadTabsAndAnalyze()
+                            addInsight({
+                              id: `data-cleared-${Date.now()}`,
+                              type: 'tip',
+                              title: t('settings.clearData.success.title'),
+                              description: t('settings.clearData.success.description'),
+                              priority: 'low',
+                              timestamp: Date.now()
+                            })
+                          }
+                          setShowSettingsDropdown(false)
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm glass-text hover:bg-white/20 transition-colors flex items-center gap-2 rounded-lg"
+                      >
+                        <span>🗑️</span>
+                        <span>{t('settings.clearData.label')}</span>
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -522,19 +528,19 @@ function IndexPopup() {
             <div className="grid grid-cols-3 gap-3 mb-2">
               <div className="glass-card !py-2 text-center">
                 <p className="text-2xl font-bold glass-text">{tabs.length}</p>
-                <p className="text-xs glass-text opacity-70">Active Tabs</p>
+                <p className="text-xs glass-text opacity-70">{t('stats.activeTabs')}</p>
               </div>
               <div className="glass-card !py-2 text-center">
                 <p className="text-2xl font-bold glass-text">
                   {analysis?.categoryCounts ? Object.keys(analysis.categoryCounts).length : 0}
                 </p>
-                <p className="text-xs glass-text opacity-70">Categories</p>
+                <p className="text-xs glass-text opacity-70">{t('stats.categories')}</p>
               </div>
               <div className="glass-card !py-2 text-center">
                 <p className="text-2xl font-bold glass-text">
                   {analysis?.duplicates ? analysis.duplicates.reduce((sum: number, d: any) => sum + d.count - 1, 0) : 0}
                 </p>
-                <p className="text-xs glass-text opacity-70">Duplicates</p>
+                <p className="text-xs glass-text opacity-70">{t('stats.duplicates')}</p>
               </div>
             </div>
             
@@ -551,16 +557,16 @@ function IndexPopup() {
             <div className="flex items-center gap-2">
               <span className="text-lg">🤖</span>
               <h2 className="font-semibold text-base glass-text">
-                AI Insights & Recommendations
+                {t('insights.title')}
               </h2>
             </div>
-            <InfoTooltip 
-              title="Tab Insights"
-              description="탭 사용 패턴과 개선 제안을 확인하세요."
+            <InfoTooltip
+              title={t('tooltips.insights.title')}
+              description={t('tooltips.insights.description')}
               features={[
-                "중복 탭 감지 및 정리 제안",
-                "카테고리별 사용 패턴 분석",
-                "생산성 향상을 위한 맞춤 팁"
+                t('tooltips.insights.features.0'),
+                t('tooltips.insights.features.1'),
+                t('tooltips.insights.features.2')
               ]}
               position="bottom-left"
             />
@@ -575,10 +581,10 @@ function IndexPopup() {
                     </div>
                     <div>
                       <p className="text-sm glass-text font-medium">
-                        탭 사용 패턴을 분석 중입니다
+                        {t('insights.analyzing.title')}
                       </p>
                       <p className="text-xs glass-text opacity-60">
-                        곧 맞춤형 인사이트를 제공해드릴게요
+                        {t('insights.analyzing.description')}
                       </p>
                     </div>
                   </div>
@@ -601,14 +607,14 @@ function IndexPopup() {
             <div className="space-y-2">
               {/* Main Actions with Info */}
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs glass-text opacity-60">Quick Actions</span>
-                <InfoTooltip 
-                  title="Smart Organize"
-                  description="카테고리를 기반으로 탭을 스마트하게 정리합니다."
+                <span className="text-xs glass-text opacity-60">{t('actions.quickActions')}</span>
+                <InfoTooltip
+                  title={t('tooltips.smartOrganize.title')}
+                  description={t('tooltips.smartOrganize.description')}
                   features={[
-                    "카테고리 순서대로 탭 그룹 생성",
-                    "도메인 기반 자동 분류",
-                    "클릭 한 번으로 전체 탭 정리"
+                    t('tooltips.smartOrganize.features.0'),
+                    t('tooltips.smartOrganize.features.1'),
+                    t('tooltips.smartOrganize.features.2')
                   ]}
                   position="auto"
                 />
@@ -622,17 +628,17 @@ function IndexPopup() {
                   {isOrganizing ? (
                     <>
                       <span className="animate-spin">⏳</span>
-                      <span>Smart Organizing...</span>
+                      <span>{t('actions.organizing')}</span>
                     </>
                   ) : (
-                    <>🤖 Smart Organize</>
+                    <>🤖 {t('actions.smartOrganize')}</>
                   )}
                 </button>
                 <button 
                   className="glass-button-primary text-sm glass-text flex items-center justify-center gap-2 py-2.5"
                   onClick={handleViewDashboard}
                 >
-                  📊 Analytics
+                  📊 {t('actions.viewAnalytics')}
                 </button>
               </div>
             </div>

@@ -1,6 +1,6 @@
 // AI-powered tab classification system
 import type { TabInfo } from '../store/tabStore'
-import type { Category } from '../types/category'
+import { storageUtils } from '../utils/storage'
 
 export interface TabContext {
   tab: TabInfo
@@ -220,7 +220,7 @@ export class TabClassifier {
   
   // Context-based classification
   private async getContextBasedCategory(context: TabContext): Promise<ClassificationResult> {
-    const { sessionTabs, timeOfDay } = context
+    const { sessionTabs } = context
     
     // Analyze categories of other tabs in the session
     const sessionCategories = new Map<string, number>()
@@ -344,19 +344,18 @@ export class TabClassifier {
   }
   
   // Basic fallback classification
-  private getBasicCategory(domain: string, title: string): ClassificationResult {
+  private getBasicCategory(domain: string, _title: string): ClassificationResult {
     // This is the current hard-coded approach as a last resort
-    const searchText = `${domain} ${title}`.toLowerCase()
     
     // Quick domain checks
-    const domainCategories = {
+    const domainCategories: Record<string, string> = {
       'github.com': 'development',
       'google.com': 'productivity',
       'youtube.com': 'entertainment',
       'facebook.com': 'social',
       'amazon.com': 'shopping'
     }
-    
+
     if (domainCategories[domain]) {
       return {
         category: domainCategories[domain],
@@ -374,19 +373,19 @@ export class TabClassifier {
   
   // Helper methods
   private async getUserMapping(domain: string): Promise<string | null> {
-    const result = await chrome.storage.sync.get(['categoryMapping'])
-    const mapping = result.categoryMapping || {}
+    const mapping = await storageUtils.getCategoryMapping()
     return mapping[domain] || null
   }
   
   private async loadUserPatterns() {
     try {
-      const result = await chrome.storage.local.get(['userPatterns', 'categoryHistory'])
+      const userPatterns = await storageUtils.getUserPatterns()
+      const categoryHistory = await storageUtils.getCategoryHistory()
       
-      if (result.userPatterns) {
+      if (userPatterns) {
         // Convert stored data back to Maps
         this.userPatterns = new Map(
-          Object.entries(result.userPatterns).map(([domain, pattern]: [string, any]) => [
+          Object.entries(userPatterns).map(([domain, pattern]: [string, any]) => [
             domain,
             {
               ...pattern,
@@ -398,8 +397,8 @@ export class TabClassifier {
         )
       }
       
-      if (result.categoryHistory) {
-        this.categoryHistory = new Map(Object.entries(result.categoryHistory))
+      if (categoryHistory) {
+        this.categoryHistory = new Map(Object.entries(categoryHistory))
       }
     } catch (error) {
       console.error('Failed to load user patterns:', error)
@@ -419,10 +418,8 @@ export class TabClassifier {
         }
       }
       
-      await chrome.storage.local.set({
-        userPatterns: patternsObj,
-        categoryHistory: Object.fromEntries(this.categoryHistory)
-      })
+      await storageUtils.setUserPatterns(patternsObj)
+      await storageUtils.setCategoryHistory(Object.fromEntries(this.categoryHistory))
     } catch (error) {
       console.error('Failed to save user patterns:', error)
     }
@@ -439,7 +436,7 @@ export class TabClassifier {
     
     // Most categorized domains
     const domainsByCategory = new Map<string, number>()
-    for (const [domain, pattern] of this.userPatterns) {
+    for (const [, pattern] of this.userPatterns) {
       for (const [category, count] of pattern.categories) {
         domainsByCategory.set(category, (domainsByCategory.get(category) || 0) + count)
       }

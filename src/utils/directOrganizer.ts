@@ -1,10 +1,11 @@
 // Direct tab organization without background script
+import { storageUtils } from './storage'
 export async function organizeTabsDirectly(categories: any[]) {
   try {
-    console.log('[TabAI Direct] Starting direct organization...')
+    console.log('[TabQuest Direct] Starting direct organization...')
     
     const tabs = await chrome.tabs.query({ currentWindow: true })
-    console.log(`[TabAI Direct] Found ${tabs.length} tabs`)
+    console.log(`[TabQuest Direct] Found ${tabs.length} tabs`)
     
     // First, ungroup all tabs
     const allTabIds = tabs
@@ -14,15 +15,15 @@ export async function organizeTabsDirectly(categories: any[]) {
     if (allTabIds.length > 0) {
       try {
         await chrome.tabs.ungroup(allTabIds)
-        console.log('[TabAI Direct] Ungrouped all tabs')
+        console.log('[TabQuest Direct] Ungrouped all tabs')
       } catch (e) {
-        console.log('[TabAI Direct] Some tabs already ungrouped')
+        console.log('[TabQuest Direct] Some tabs already ungrouped')
       }
     }
     
     // Get saved category mappings
-    const { categoryMapping = {} } = await chrome.storage.sync.get(['categoryMapping'])
-    console.log('[TabAI Direct] Category mappings:', categoryMapping)
+    const categoryMapping = await storageUtils.getCategoryMapping()
+    console.log('[TabQuest Direct] Category mappings:', categoryMapping)
     
     // Group tabs by category
     const categoryGroups = new Map<string, number[]>()
@@ -45,7 +46,7 @@ export async function organizeTabsDirectly(categories: any[]) {
         // First check if user has assigned a category to this specific domain
         if (categoryMapping[domain]) {
           categoryId = categoryMapping[domain]
-          console.log(`[TabAI Direct] Found user mapping for ${domain}: ${categoryId}`)
+          console.log(`[TabQuest Direct] Found user mapping for ${domain}: ${categoryId}`)
         } else {
           // Then check category domains
           for (const category of categories) {
@@ -59,7 +60,7 @@ export async function organizeTabsDirectly(categories: any[]) {
           }
         }
       } catch (error) {
-        console.error(`[TabAI Direct] Error parsing URL: ${tab.url}`)
+        console.error(`[TabQuest Direct] Error parsing URL: ${tab.url}`)
         // For invalid URLs, treat as uncategorized
         categoryId = 'uncategorized'
       }
@@ -88,9 +89,9 @@ export async function organizeTabsDirectly(categories: any[]) {
         await chrome.tabGroups.move(groupId, { index: -1 })
         
         groupsCreated++
-        console.log(`[TabAI Direct] Created group for ${category.name} with ${tabIds.length} tabs`)
+        console.log(`[TabQuest Direct] Created group for ${category.name} with ${tabIds.length} tabs`)
       } catch (error) {
-        console.error(`[TabAI Direct] Failed to create group for ${category.name}:`, error)
+        console.error(`[TabQuest Direct] Failed to create group for ${category.name}:`, error)
       }
     }
     
@@ -106,7 +107,7 @@ export async function organizeTabsDirectly(categories: any[]) {
     }
     
   } catch (error) {
-    console.error('[TabAI Direct] Organization failed:', error)
+    console.error('[TabQuest Direct] Organization failed:', error)
     throw error
   }
 }
@@ -115,7 +116,7 @@ export async function organizeTabsDirectly(categories: any[]) {
 export async function organizeTabsByDomain() {
   try {
     const tabs = await chrome.tabs.query({ currentWindow: true })
-    console.log(`[TabAI Direct] Found ${tabs.length} tabs for domain organization`)
+    console.log(`[TabQuest Direct] Found ${tabs.length} tabs for domain organization`)
     
     // First, ungroup all tabs
     const allTabIds = tabs
@@ -152,7 +153,7 @@ export async function organizeTabsByDomain() {
         }
         domainGroups.get(domain)!.push(tab.id)
       } catch (error) {
-        console.error(`[TabAI Direct] Error parsing URL: ${tab.url}`)
+        console.error(`[TabQuest Direct] Error parsing URL: ${tab.url}`)
       }
     }
     
@@ -174,7 +175,7 @@ export async function organizeTabsByDomain() {
           groupsCreated++
           colorIndex++
         } catch (error) {
-          console.error(`[TabAI Direct] Failed to create group for ${domain}:`, error)
+          console.error(`[TabQuest Direct] Failed to create group for ${domain}:`, error)
         }
       }
     }
@@ -186,7 +187,7 @@ export async function organizeTabsByDomain() {
       tabsProcessed: tabs.length
     }
   } catch (error) {
-    console.error('[TabAI Direct] Domain organization failed:', error)
+    console.error('[TabQuest Direct] Domain organization failed:', error)
     throw error
   }
 }

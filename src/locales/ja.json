@@ -1,0 +1,292 @@
+{
+  "header": {
+    "subtitle": "タブアシスタント"
+  },
+  "app": {
+    "name": "TabQuest",
+    "tagline": "タブアシスタント"
+  },
+  "stats": {
+    "activeTabs": "アクティブタブ",
+    "categories": "カテゴリー",
+    "duplicates": "重複"
+  },
+  "insights": {
+    "title": "AIインサイト & レコメンデーション",
+    "noInsights": "現在利用可能なインサイトはありません",
+    "checkTabs": "スマートな推奨事項を取得するには、より多くのタブを開いてください",
+    "welcome": {
+      "title": "👋 TabQuestへようこそ！",
+      "description": "AIパワードタブ管理でブラウジング体験を変革しましょう。ヘルプボタン（？）をクリックして完全ガイドをご覧ください。",
+      "action": "ガイドを見る"
+    },
+    "duplicates": {
+      "title": "{{count}}個の重複タブを検出",
+      "description": "同じページが複数のタブで開かれています。メモリを節約するために整理しましょう。",
+      "action": "重複を削除"
+    },
+    "highTabCount": {
+      "title": "{{count}}個のタブが速度を低下させています",
+      "description": "AIスマート整理を使用して関連タブをグループ化しましょう。",
+      "action": "今すぐ整理"
+    },
+    "categoryFocus": {
+      "title": "{{category}}の使用量が多いです",
+      "description": "{{count}}個の{{category}}タブが開いています。専用ワークスペースの作成を検討してください。"
+    },
+    "duplicatesRemoved": {
+      "title": "✅ 重複削除完了",
+      "description": "{{count}}個の重複タブを正常に閉じました"
+    },
+    "analyzing": {
+      "title": "タブ使用パターンを分析中です",
+      "description": "まもなくパーソナライズされたインサイトを提供します"
+    },
+    "organizationAvailable": {
+      "title": "タブの整理が利用可能",
+      "description": "{{count}}個のタブを{{categoryCount}}個のカテゴリーに整理して生産性を向上させましょう。",
+      "action": "今すぐ整理"
+    }
+  },
+  "categories": {
+    "work": "仕事",
+    "productivity": "生産性",
+    "social": "ソーシャル",
+    "entertainment": "エンタメ",
+    "shopping": "ショッピング",
+    "news": "ニュース",
+    "learning": "学習",
+    "development": "開発",
+    "finance": "金融",
+    "health": "健康",
+    "travel": "旅行",
+    "food": "食べ物",
+    "uncategorized": "未分類",
+    "other": "その他",
+    "aiLearning": "AI学習",
+    "domains": "ドメイン",
+    "score": "スコア"
+  },
+  "actions": {
+    "quickActions": "クイックアクション",
+    "smartOrganize": "スマート整理",
+    "viewAnalytics": "分析",
+    "analytics": "分析",
+    "categories": "カテゴリー",
+    "assign": "割り当て",
+    "help": "ヘルプ",
+    "close": "閉じる",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "delete": "削除",
+    "add": "追加",
+    "edit": "編集",
+    "ordering": "順序",
+    "organizing": "整理中...",
+    "loading": "読み込み中...",
+    "search": "検索",
+    "filter": "フィルター"
+  },
+  "messages": {
+    "organizingTabs": "タブを整理しています...",
+    "organizationSuccess": "{{count}}個のタブを正常に整理しました",
+    "organizationError": "タブの整理に失敗しました",
+    "duplicatesRemoved": "{{count}}個の重複タブを削除しました",
+    "noTabsToOrganize": "整理するタブがありません",
+    "categoryAdded": "カテゴリーが正常に追加されました",
+    "categoryDeleted": "カテゴリーが削除されました",
+    "categoryUpdated": "カテゴリーが更新されました",
+    "error": "エラーが発生しました",
+    "success": "成功"
+  },
+  "tooltips": {
+    "insights": {
+      "title": "タブインサイト",
+      "description": "タブ使用パターンと改善提案を確認してください。",
+      "features": [
+        "重複タブの検出と整理提案",
+        "カテゴリ別使用パターン分析",
+        "生産性向上のためのパーソナライズされたヒント"
+      ]
+    },
+    "categoryManager": {
+      "title": "カテゴリー管理",
+      "description": "効率的なタブ整理のためのカテゴリーを管理します。",
+      "features": [
+        "カテゴリー名と色の編集",
+        "ドラッグ＆ドロップで順序変更",
+        "カテゴリー順にタブグループをソート",
+        "未分類は常に最後に配置"
+      ],
+      "tips": {
+        "dragTip": "カテゴリーをドラッグして順序を変更できます。",
+        "editTip": "鉛筆アイコンをクリックして名前と色を編集します。",
+        "orderTip": "カテゴリー順にタブグループがソートされます。"
+      },
+      "system": "（システム）",
+      "cannotEditSystem": "未分類カテゴリーは編集できません。",
+      "cannotDeleteSystem": "未分類カテゴリーは削除できません。",
+      "defaultCannotDelete": "デフォルトカテゴリーは削除できません。"
+    },
+    "smartOrganize": {
+      "title": "スマート整理",
+      "description": "カテゴリを基にタブをスマートに整理します。",
+      "features": [
+        "カテゴリ順にタブグループを作成",
+        "ドメインベースの自動分類",
+        "ワンクリックですべてのタブを整理"
+      ]
+    },
+    "analytics": "詳細なタブ使用分析を表示",
+    "categories": "タブカテゴリーを管理",
+    "assign": "ドメインをカテゴリーに手動で割り当て",
+    "help": "ヘルプとドキュメントを表示",
+    "settings": "設定",
+    "language": "言語"
+  },
+  "modal": {
+    "categoryManager": {
+      "title": "カテゴリー管理",
+      "description": "タブ用のカテゴリーを作成・管理",
+      "addCategory": "カテゴリー追加",
+      "addNewCategory": "+ 新しいカテゴリーを追加",
+      "editCategory": "カテゴリー編集",
+      "deleteConfirm": "このカテゴリーを削除しますか？",
+      "categoryName": "カテゴリー名",
+      "categoryColor": "色",
+      "dragToReorder": "ドラッグして並べ替え"
+    },
+    "tabAssignment": {
+      "title": "タブをカテゴリーに割り当て",
+      "description": "各タブを適切なカテゴリーに分類して効率的に管理しましょう。",
+      "domain": "ドメイン",
+      "category": "カテゴリー",
+      "selectCategory": "カテゴリーを選択",
+      "assignTabsToCategories": "タブをカテゴリーに割り当て",
+      "applyGrouping": "適用",
+      "applying": "適用中...",
+      "applyButtonTooltip": "ブラウザにタブグループを適用します",
+      "untitled": "タイトルなし",
+      "features": [
+        "ドメイン単位でカテゴリーを割り当て",
+        "同じドメインのすべてのタブは同じカテゴリーを使用",
+        "適用ボタンでブラウザにタブグループを作成"
+      ],
+      "tip": "カテゴリーはドメインごとに割り当てられます。タブのカテゴリーを変更すると、同じドメインのすべてのタブ（例：すべてのgithub.comタブ）が同じカテゴリーを使用します。"
+    },
+    "dashboard": {
+      "title": "分析ダッシュボード",
+      "description": "ブラウジングパターンと生産性インサイト",
+      "dailyStats": "日次統計",
+      "weeklyTrend": "週次トレンド",
+      "categoryBreakdown": "カテゴリー内訳",
+      "topDomains": "トップドメイン",
+      "timeSpent": "滞在時間",
+      "visits": "訪問数"
+    },
+    "help": {
+      "title": "ヘルプ & ガイド",
+      "subtitle": "AIパワードタブ管理のすべて",
+      "gettingStarted": "はじめに",
+      "shortcuts": "キーボードショートカット",
+      "faq": "よくある質問",
+      "tabQuestGuide": "TabQuest使用ガイド",
+      "aiLearningStatus": {
+        "title": "AI学習ステータス",
+        "description": "TabQuestは現在あなたのブラウジングパターンを学習中です。タブを再分類したり新しいタブを開くたびにAIが賢くなります。",
+        "learning": "学習中..."
+      },
+      "features": {
+        "aiSmartOrganize": {
+          "title": "AIスマート整理",
+          "description": "AIがあなたのブラウジングパターンを学習してタブを自動的に整理します。",
+          "details": [
+            "使用時間帯とコンテキストを考慮したインテリジェントな分類",
+            "一緒に使用するタブの関係分析",
+            "使うほど正確になるパーソナライズ学習"
+          ]
+        },
+        "categoryManagement": {
+          "title": "カテゴリー管理",
+          "description": "独自のカテゴリーを作成し、色とアイコンをカスタマイズしましょう。",
+          "details": [
+            "ドラッグ＆ドロップで簡単なタブ分類",
+            "ドメイン別の自動カテゴリーマッピング",
+            "AIが学習するカテゴリーパターン"
+          ]
+        },
+        "productivityInsights": {
+          "title": "生産性インサイト",
+          "description": "AIが分析したブラウジングパターンと生産性スコアを確認しましょう。",
+          "details": [
+            "時間帯別の使用パターン分析",
+            "カテゴリー別の時間追跡",
+            "生産性向上のためのAI提案"
+          ]
+        },
+        "smartCleanup": {
+          "title": "スマートクリーンアップ",
+          "description": "重複タブの自動検出と整理でブラウザのパフォーマンスを最適化します。",
+          "details": [
+            "URLベースの重複タブ検出",
+            "最新のタブを保持するオプション",
+            "メモリ使用量の最適化"
+          ]
+        }
+      },
+      "proTips": {
+        "title": "プロのヒント",
+        "tips": [
+          "タブを手動で再分類すると、AIがあなたの好みを学習します",
+          "仕事時間とプライベート時間で異なるカテゴリーを使うと、AIが時間帯ごとに区別します",
+          "関連するタブを一緒に開くと、AIがコンテキストを理解してより正確に分類します"
+        ]
+      }
+    }
+  },
+  "dashboard": {
+    "title": "TabQuest アナリティクス",
+    "subtitle": "AI搭載のブラウジング習慣インサイト",
+    "betaBadge": "ベータ版",
+    "betaNotice": "この機能は実験的でベータテスト中です",
+    "stats": {
+      "totalTabs": "総タブ数",
+      "categories": "カテゴリー",
+      "duplicates": "重複タブ",
+      "trackedTabs": "追跡済みタブ"
+    },
+    "sections": {
+      "categoryDistribution": "カテゴリー分布",
+      "mostVisited": "よく訪問するサイト",
+      "activityByHour": "時間別アクティビティ",
+      "aiInsights": "AIインサイト",
+      "tabs": "タブ",
+      "visits": "回訪問"
+    },
+    "insights": {
+      "productivityTip": "生産性のヒント",
+      "focusSuggestion": "集中力の提案",
+      "lowProductivity": "エンターテインメントタブが作業タブより多くなっています。気が散るタブを閉じることを検討してください。",
+      "highProductivity": "素晴らしい！生産的なタブのバランスを保てています。",
+      "manyDuplicates": "{{count}}個の重複タブがあります。スマート整理を使用して整理しましょう！",
+      "fewDuplicates": "タブはよく整理されています。この調子で続けてください！"
+    },
+    "time": {
+      "12am": "午前0時",
+      "6am": "午前6時",
+      "12pm": "午後0時",
+      "6pm": "午後6時",
+      "11pm": "午後11時"
+    }
+  },
+  "settings": {
+    "clearData": {
+      "label": "AIデータを初期化",
+      "confirm": "AI学習データを初期化しますか？\n\nカテゴリ設定は保持され、AIが学習したパターンのみ初期化されます。",
+      "success": {
+        "title": "✨ AIデータ初期化完了",
+        "description": "AIが新しいパターンを学習する準備ができました。"
+      }
+    }
+  }
+}

@@ -97,7 +97,7 @@ export const DEFAULT_CATEGORIES: Category[] = [
   },
   {
     id: "uncategorized",
-    name: "미분류",
+    name: "Uncategorized",
     color: "grey",
     domains: [],
     keywords: [],

@@ -1,0 +1,292 @@
+{
+  "header": {
+    "subtitle": "탭 어시스턴트"
+  },
+  "app": {
+    "name": "TabQuest",
+    "tagline": "탭 어시스턴트"
+  },
+  "stats": {
+    "activeTabs": "활성 탭",
+    "categories": "카테고리",
+    "duplicates": "중복"
+  },
+  "insights": {
+    "title": "AI 인사이트 & 추천",
+    "noInsights": "현재 사용 가능한 인사이트가 없습니다",
+    "checkTabs": "스마트 추천을 받으려면 더 많은 탭을 열어보세요",
+    "welcome": {
+      "title": "👋 TabQuest에 오신 것을 환영합니다!",
+      "description": "AI 기반 탭 관리로 브라우징 경험을 혁신하세요. 도움말 버튼(?)을 눌러 전체 가이드를 확인하세요.",
+      "action": "가이드 보기"
+    },
+    "duplicates": {
+      "title": "중복 탭 {{count}}개 발견",
+      "description": "동일한 페이지가 여러 탭에서 열려있습니다. 메모리 절약을 위해 정리해보세요.",
+      "action": "중복 제거"
+    },
+    "highTabCount": {
+      "title": "{{count}}개의 탭이 속도를 저하시키고 있습니다",
+      "description": "AI 스마트 정리를 사용하여 관련 탭을 그룹화해보세요.",
+      "action": "지금 정리"
+    },
+    "categoryFocus": {
+      "title": "{{category}} 사용량이 많습니다",
+      "description": "{{count}}개의 {{category}} 탭이 열려있습니다. 전용 워크스페이스를 만드는 것을 고려해보세요."
+    },
+    "duplicatesRemoved": {
+      "title": "✅ 중복 제거 완료",
+      "description": "{{count}}개의 중복 탭을 성공적으로 닫았습니다"
+    },
+    "analyzing": {
+      "title": "탭 사용 패턴을 분석 중입니다",
+      "description": "곧 맞춤형 인사이트를 제공해드릴게요"
+    },
+    "organizationAvailable": {
+      "title": "탭 정리가 필요합니다",
+      "description": "{{count}}개의 탭을 {{categoryCount}}개 카테고리로 정리하여 생산성을 높여보세요.",
+      "action": "지금 정리"
+    }
+  },
+  "categories": {
+    "work": "업무",
+    "productivity": "생산성",
+    "social": "소셜",
+    "entertainment": "엔터테인먼트",
+    "shopping": "쇼핑",
+    "news": "뉴스",
+    "learning": "학습",
+    "development": "개발",
+    "finance": "금융",
+    "health": "건강",
+    "travel": "여행",
+    "food": "음식",
+    "uncategorized": "미분류",
+    "other": "기타",
+    "aiLearning": "AI 학습",
+    "domains": "도메인",
+    "score": "점수"
+  },
+  "actions": {
+    "quickActions": "빠른 작업",
+    "smartOrganize": "스마트 정리",
+    "organizing": "정리 중...",
+    "viewAnalytics": "분석",
+    "analytics": "분석",
+    "categories": "카테고리",
+    "assign": "할당",
+    "help": "도움말",
+    "close": "닫기",
+    "save": "저장",
+    "cancel": "취소",
+    "delete": "삭제",
+    "add": "추가",
+    "edit": "편집",
+    "ordering": "순서",
+    "loading": "로딩 중...",
+    "search": "검색",
+    "filter": "필터"
+  },
+  "messages": {
+    "organizingTabs": "탭 정리 중...",
+    "organizationSuccess": "{{count}}개의 탭을 성공적으로 정리했습니다",
+    "organizationError": "탭 정리에 실패했습니다",
+    "duplicatesRemoved": "{{count}}개의 중복 탭을 제거했습니다",
+    "noTabsToOrganize": "정리할 탭이 없습니다",
+    "categoryAdded": "카테고리가 성공적으로 추가되었습니다",
+    "categoryDeleted": "카테고리가 삭제되었습니다",
+    "categoryUpdated": "카테고리가 업데이트되었습니다",
+    "error": "오류가 발생했습니다",
+    "success": "성공"
+  },
+  "tooltips": {
+    "insights": {
+      "title": "탭 인사이트",
+      "description": "탭 사용 패턴과 개선 제안을 확인하세요.",
+      "features": [
+        "중복 탭 감지 및 정리 제안",
+        "카테고리별 사용 패턴 분석",
+        "생산성 향상을 위한 맞춤 팁"
+      ]
+    },
+    "categoryManager": {
+      "title": "카테고리 관리",
+      "description": "탭을 효율적으로 정리하기 위한 카테고리를 관리합니다.",
+      "features": [
+        "카테고리 이름과 색상 편집",
+        "드래그 앤 드롭으로 순서 변경",
+        "카테고리 순서대로 탭 그룹 정렬",
+        "미분류는 항상 마지막에 위치"
+      ],
+      "tips": {
+        "dragTip": "카테고리를 드래그하여 순서를 변경할 수 있습니다.",
+        "editTip": "연필 아이콘을 클릭하여 이름과 색상을 편집하세요.",
+        "orderTip": "카테고리 순서대로 탭 그룹이 정렬됩니다."
+      },
+      "system": "(시스템)",
+      "cannotEditSystem": "미분류 카테고리는 수정할 수 없습니다.",
+      "cannotDeleteSystem": "미분류 카테고리는 삭제할 수 없습니다.",
+      "defaultCannotDelete": "기본 카테고리는 삭제할 수 없습니다."
+    },
+    "smartOrganize": {
+      "title": "스마트 정리",
+      "description": "카테고리를 기반으로 탭을 스마트하게 정리합니다.",
+      "features": [
+        "카테고리 순서대로 탭 그룹 생성",
+        "도메인 기반 자동 분류",
+        "클릭 한 번으로 전체 탭 정리"
+      ]
+    },
+    "analytics": "상세한 탭 사용 분석 보기",
+    "categories": "탭 카테고리 관리",
+    "assign": "도메인을 카테고리에 수동 할당",
+    "help": "도움말 및 문서 보기",
+    "settings": "설정",
+    "language": "언어"
+  },
+  "modal": {
+    "categoryManager": {
+      "title": "카테고리 관리",
+      "description": "탭을 위한 카테고리를 생성하고 관리하세요",
+      "addCategory": "카테고리 추가",
+      "addNewCategory": "+ 새 카테고리 추가",
+      "editCategory": "카테고리 편집",
+      "deleteConfirm": "이 카테고리를 삭제하시겠습니까?",
+      "categoryName": "카테고리 이름",
+      "categoryColor": "색상",
+      "dragToReorder": "드래그하여 순서 변경"
+    },
+    "tabAssignment": {
+      "title": "탭 카테고리 할당",
+      "description": "각 탭을 적절한 카테고리로 분류하여 효율적으로 관리하세요.",
+      "domain": "도메인",
+      "category": "카테고리",
+      "selectCategory": "카테고리 선택",
+      "assignTabsToCategories": "탭을 카테고리에 할당",
+      "applyGrouping": "그룹핑 적용",
+      "applying": "적용 중...",
+      "applyButtonTooltip": "브라우저에 탭 그룹을 적용합니다",
+      "untitled": "제목 없음",
+      "features": [
+        "도메인 단위로 카테고리 할당",
+        "같은 도메인의 모든 탭은 동일한 카테고리 사용",
+        "Apply 버튼으로 브라우저에 탭 그룹 생성"
+      ],
+      "tip": "카테고리는 도메인별로 할당됩니다. 탭의 카테고리를 변경하면 같은 도메인의 모든 탭(예: 모든 github.com 탭)이 동일한 카테고리를 사용합니다."
+    },
+    "dashboard": {
+      "title": "분석 대시보드",
+      "description": "브라우징 패턴과 생산성 인사이트",
+      "dailyStats": "일일 통계",
+      "weeklyTrend": "주간 트렌드",
+      "categoryBreakdown": "카테고리 분석",
+      "topDomains": "상위 도메인",
+      "timeSpent": "사용 시간",
+      "visits": "방문"
+    },
+    "help": {
+      "title": "도움말 & 가이드",
+      "subtitle": "AI 기반 탭 관리의 모든 것",
+      "gettingStarted": "시작하기",
+      "shortcuts": "키보드 단축키",
+      "faq": "자주 묻는 질문",
+      "tabQuestGuide": "TabQuest 사용 가이드",
+      "aiLearningStatus": {
+        "title": "AI 학습 상태",
+        "description": "TabQuest는 현재 당신의 브라우징 패턴을 학습 중입니다. 탭을 재분류하거나 새로운 탭을 열 때마다 AI가 더 똑똑해집니다.",
+        "learning": "학습 중..."
+      },
+      "features": {
+        "aiSmartOrganize": {
+          "title": "AI Smart Organize",
+          "description": "AI가 당신의 브라우징 패턴을 학습하여 탭을 자동으로 정리합니다.",
+          "details": [
+            "사용 시간대와 맥락을 고려한 지능형 분류",
+            "함께 사용하는 탭들의 관계 분석",
+            "사용할수록 정확해지는 개인화 학습"
+          ]
+        },
+        "categoryManagement": {
+          "title": "Category Management",
+          "description": "나만의 카테고리를 만들고 색상과 아이콘을 커스터마이징하세요.",
+          "details": [
+            "드래그 앤 드롭으로 쉬운 탭 분류",
+            "도메인별 자동 카테고리 매핑",
+            "AI가 학습하는 카테고리 패턴"
+          ]
+        },
+        "productivityInsights": {
+          "title": "Productivity Insights",
+          "description": "AI가 분석한 브라우징 패턴과 생산성 점수를 확인하세요.",
+          "details": [
+            "시간대별 사용 패턴 분석",
+            "카테고리별 시간 추적",
+            "생산성 향상을 위한 AI 제안"
+          ]
+        },
+        "smartCleanup": {
+          "title": "Smart Cleanup",
+          "description": "중복 탭 자동 감지 및 정리로 브라우저 성능을 최적화합니다.",
+          "details": [
+            "URL 기반 중복 탭 감지",
+            "가장 최근 탭 유지 옵션",
+            "메모리 사용량 최적화"
+          ]
+        }
+      },
+      "proTips": {
+        "title": "Pro Tips",
+        "tips": [
+          "탭을 수동으로 재분류하면 AI가 당신의 선호도를 학습합니다",
+          "업무 시간과 개인 시간에 다른 카테고리를 사용하면 AI가 시간대별로 구분합니다",
+          "관련 탭을 함께 열면 AI가 컨텍스트를 이해하고 더 정확하게 분류합니다"
+        ]
+      }
+    }
+  },
+  "dashboard": {
+    "title": "TabQuest 분석",
+    "subtitle": "AI 기반 브라우징 습관 인사이트",
+    "betaBadge": "베타",
+    "betaNotice": "이 기능은 실험적이며 베타 테스트 중입니다",
+    "stats": {
+      "totalTabs": "전체 탭",
+      "categories": "카테고리",
+      "duplicates": "중복 탭",
+      "trackedTabs": "추적된 탭"
+    },
+    "sections": {
+      "categoryDistribution": "카테고리 분포",
+      "mostVisited": "자주 방문한 사이트",
+      "activityByHour": "시간대별 활동",
+      "aiInsights": "AI 인사이트",
+      "tabs": "개",
+      "visits": "회 방문"
+    },
+    "insights": {
+      "productivityTip": "생산성 팁",
+      "focusSuggestion": "집중력 제안",
+      "lowProductivity": "엔터테인먼트 탭이 작업 탭보다 많습니다. 방해되는 탭을 일부 닫는 것을 고려해보세요.",
+      "highProductivity": "훌륭합니다! 생산적인 탭의 균형을 잘 유지하고 있습니다.",
+      "manyDuplicates": "중복 탭이 {{count}}개 있습니다. 스마트 정리를 사용하여 정리해보세요!",
+      "fewDuplicates": "탭이 잘 정리되어 있습니다. 계속 유지하세요!"
+    },
+    "time": {
+      "12am": "오전 12시",
+      "6am": "오전 6시",
+      "12pm": "오후 12시",
+      "6pm": "오후 6시",
+      "11pm": "오후 11시"
+    }
+  },
+  "settings": {
+    "clearData": {
+      "label": "AI 데이터 초기화",
+      "confirm": "AI 학습 데이터를 초기화하시겠습니까?\n\n카테고리 설정은 유지되며, AI가 학습한 패턴만 초기화됩니다.",
+      "success": {
+        "title": "✨ AI 데이터 초기화 완료",
+        "description": "AI가 새로운 패턴을 학습할 준비가 되었습니다."
+      }
+    }
+  }
+}
