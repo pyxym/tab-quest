@@ -3,13 +3,8 @@ import { TabTracker } from '../utils/tabTracker';
 import { storageUtils } from '../utils/storage';
 
 export default defineBackground(() => {
-  console.log('[TabQuest] Background service worker started');
-
   // Initialize tab tracking
   TabTracker.initialize()
-    .then(() => {
-      console.log('[TabQuest] Tab tracking initialized');
-    })
     .catch((error) => {
       console.error('[TabQuest] Failed to initialize tab tracking:', error);
     });

@@ -3,14 +3,7 @@ import { useCategoryStore } from '../store/categoryStore';
 
 export async function organizeTabsUnified(categories: any[]) {
   try {
-    console.log('[TabQuest Unified] Starting organization...');
-    console.log(
-      '[TabQuest Unified] Categories order:',
-      categories.map((c) => c.name),
-    );
-
     const tabs = await chrome.tabs.query({ currentWindow: true });
-    console.log(`[TabQuest Unified] Found ${tabs.length} tabs`);
 
     // First, ungroup all tabs
     const allTabIds = tabs.map((tab) => tab.id).filter((id): id is number => id !== undefined);
@@ -18,9 +11,8 @@ export async function organizeTabsUnified(categories: any[]) {
     if (allTabIds.length > 0) {
       try {
         await chrome.tabs.ungroup(allTabIds);
-        console.log('[TabQuest Unified] Ungrouped all tabs');
       } catch (e) {
-        console.log('[TabQuest Unified] Some tabs already ungrouped');
+        // Some tabs already ungrouped
       }
     }
 
@@ -44,9 +36,7 @@ export async function organizeTabsUnified(categories: any[]) {
         const domain = new URL(tab.url).hostname.replace(/^www\./, '');
         // Use the store's getCategoryForDomain which checks both mappings and category domains
         categoryId = getCategoryForDomain(domain);
-        console.log(`[TabQuest Unified] ${domain} -> ${categoryId}`);
       } catch (error) {
-        console.error(`[TabQuest Unified] Error parsing URL: ${tab.url}`);
         categoryId = 'uncategorized';
       }
 
@@ -65,8 +55,6 @@ export async function organizeTabsUnified(categories: any[]) {
       const categoryTabs = categorizedTabs.get(category.id);
       if (!categoryTabs || categoryTabs.length === 0) continue;
 
-      console.log(`[TabQuest Unified] Moving ${categoryTabs.length} tabs for category: ${category.name}`);
-
       for (const tab of categoryTabs) {
         if (tab.id) {
           reorderedTabIds.push(tab.id);
@@ -79,7 +67,7 @@ export async function organizeTabsUnified(categories: any[]) {
       try {
         await chrome.tabs.move(reorderedTabIds[i], { index: i });
       } catch (error) {
-        console.error(`[TabQuest Unified] Failed to move tab:`, error);
+        // Failed to move tab, continue with others
       }
     }
 
@@ -110,9 +98,8 @@ export async function organizeTabsUnified(categories: any[]) {
 
         groupsCreated++;
         tabsProcessed += tabIds.length;
-        console.log(`[TabQuest Unified] Created group for ${category.name} with ${tabIds.length} tabs`);
       } catch (error) {
-        console.error(`[TabQuest Unified] Failed to create group for ${category.name}:`, error);
+        // Failed to create group, continue with others
       }
     }
 
@@ -125,7 +112,6 @@ export async function organizeTabsUnified(categories: any[]) {
       tabsProcessed: tabs.length,
     };
   } catch (error) {
-    console.error('[TabQuest Unified] Organization failed:', error);
     throw error;
   }
 }

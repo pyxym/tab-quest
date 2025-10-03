@@ -104,11 +104,8 @@ function IndexPopup() {
           label: t('insights.duplicates.action'),
           action: async () => {
             try {
-              console.log('[TabQuest] Starting duplicate removal...');
-
               // Get all tabs in current window
               const tabs = await chrome.tabs.query({ currentWindow: true });
-              console.log(`[TabQuest] Found ${tabs.length} total tabs`);
 
               const urlMap = new Map<string, chrome.tabs.Tab[]>();
 
@@ -142,18 +139,12 @@ function IndexPopup() {
                 }
               });
 
-              console.log(
-                '[TabQuest] URL groups:',
-                Array.from(urlMap.entries()).map(([url, tabs]) => `${url}: ${tabs.length}`),
-              );
-
               // Find and close duplicates
               let closedCount = 0;
               const tabsToClose: number[] = [];
 
               for (const [url, tabGroup] of urlMap) {
                 if (tabGroup.length > 1) {
-                  console.log(`[TabQuest] Found ${tabGroup.length} tabs for ${url}`);
 
                   // Sort by id to keep the oldest tab
                   tabGroup.sort((a, b) => (a.id || 0) - (b.id || 0));
@@ -168,8 +159,6 @@ function IndexPopup() {
                   }
                 }
               }
-
-              console.log(`[TabQuest] Will close ${closedCount} duplicate tabs`);
 
               // Close all duplicate tabs at once
               if (tabsToClose.length > 0) {
@@ -187,8 +176,6 @@ function IndexPopup() {
                   priority: 'medium',
                   timestamp: Date.now(),
                 });
-              } else {
-                console.log('[TabQuest] No duplicates found to remove');
               }
 
               // Reload tabs and analysis
@@ -282,23 +269,16 @@ function IndexPopup() {
   }
 
   async function handleAIOrganize() {
-    console.log('[TabQuest] handleAIOrganize called, current isOrganizing:', isOrganizing);
     if (isOrganizing) {
-      console.log('[TabQuest] Already organizing, skipping...');
       return;
     }
 
     setIsOrganizing(true);
-    console.log('[TabQuest] Set isOrganizing to true');
 
     try {
-      console.log('[TabQuest] Starting Smart organization...');
-      console.log('[TabQuest] Categories available:', categories?.length || 0);
 
       // Use the unified organization function
       const result = await organizeTabsUnified(categories);
-
-      console.log('[TabQuest] Organization result:', result);
 
       if (!result) {
         throw new Error('No response from background script');
@@ -355,7 +335,6 @@ function IndexPopup() {
       // Check if it's a timeout error
       if (error.message?.includes('Timeout') || error.message?.includes('timeout')) {
         // Try fallback to smartOrganize
-        console.log('[TabQuest] Timeout occurred, trying smartOrganize as fallback');
         try {
           const fallbackResult = await chrome.runtime.sendMessage({
             action: 'smartOrganize',
@@ -387,7 +366,6 @@ function IndexPopup() {
         });
       }
     } finally {
-      console.log('[TabQuest] Finally block: setting isOrganizing to false');
       // Ensure state is reset
       setIsOrganizing(false);
       // Reload data

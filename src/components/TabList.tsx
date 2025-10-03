@@ -130,13 +130,10 @@ export const TabList: React.FC<TabListProps> = ({ onClose }) => {
     if (isOrganizing) return;
 
     try {
-      console.log('[TabQuest] 통합 정리 기능 사용 중...');
       setIsOrganizing(true);
 
       // 통합 정리 함수 사용
       const result = await organizeTabsUnified(categories);
-
-      console.log('[TabQuest] 탭 정리 완료:', result);
 
       // 정리 후 탭 목록 새로고침
       setTimeout(() => {

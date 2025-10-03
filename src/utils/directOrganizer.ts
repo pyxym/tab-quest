@@ -2,10 +2,7 @@
 import { storageUtils } from './storage';
 export async function organizeTabsDirectly(categories: any[]) {
   try {
-    console.log('[TabQuest Direct] Starting direct organization...');
-
     const tabs = await chrome.tabs.query({ currentWindow: true });
-    console.log(`[TabQuest Direct] Found ${tabs.length} tabs`);
 
     // First, ungroup all tabs
     const allTabIds = tabs.map((tab) => tab.id).filter((id): id is number => id !== undefined);
@@ -13,15 +10,13 @@ export async function organizeTabsDirectly(categories: any[]) {
     if (allTabIds.length > 0) {
       try {
         await chrome.tabs.ungroup(allTabIds);
-        console.log('[TabQuest Direct] Ungrouped all tabs');
       } catch (e) {
-        console.log('[TabQuest Direct] Some tabs already ungrouped');
+        // Some tabs already ungrouped
       }
     }
 
     // Get saved category mappings
     const categoryMapping = await storageUtils.getCategoryMapping();
-    console.log('[TabQuest Direct] Category mappings:', categoryMapping);
 
     // Group tabs by category
     const categoryGroups = new Map<string, number[]>();
@@ -44,7 +39,6 @@ export async function organizeTabsDirectly(categories: any[]) {
         // First check if user has assigned a category to this specific domain
         if (categoryMapping[domain]) {
           categoryId = categoryMapping[domain];
-          console.log(`[TabQuest Direct] Found user mapping for ${domain}: ${categoryId}`);
         } else {
           // Then check category domains
           for (const category of categories) {
@@ -89,7 +83,6 @@ export async function organizeTabsDirectly(categories: any[]) {
         await chrome.tabGroups.move(groupId, { index: -1 });
 
         groupsCreated++;
-        console.log(`[TabQuest Direct] Created group for ${category.name} with ${tabIds.length} tabs`);
       } catch (error) {
         console.error(`[TabQuest Direct] Failed to create group for ${category.name}:`, error);
       }
@@ -113,7 +106,6 @@ export async function organizeTabsDirectly(categories: any[]) {
 export async function organizeTabsByDomain() {
   try {
     const tabs = await chrome.tabs.query({ currentWindow: true });
-    console.log(`[TabQuest Direct] Found ${tabs.length} tabs for domain organization`);
 
     // First, ungroup all tabs
     const allTabIds = tabs.map((tab) => tab.id).filter((id): id is number => id !== undefined);
