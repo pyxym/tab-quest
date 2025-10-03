@@ -17,11 +17,11 @@
     backdrop-filter: blur(40px) saturate(180%);
     -webkit-backdrop-filter: blur(40px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 
+    box-shadow:
       0 25px 50px -12px rgba(0, 0, 0, 0.25),
       inset 0 0 0 1px rgba(255, 255, 255, 0.5);
   }
-  
+
   /* Dark mode glass */
   @media (prefers-color-scheme: dark) {
     .glass-main {
@@ -29,18 +29,18 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
   }
-  
+
   /* True Apple Glassmorphism */
   .glass {
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 
+    box-shadow:
       0 8px 32px 0 rgba(31, 38, 135, 0.37),
       inset 0 0 0 1px rgba(255, 255, 255, 0.3);
   }
-  
+
   /* Convex glass effect for dashboard */
   .glass-convex {
     position: relative;
@@ -54,7 +54,7 @@
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 
+    box-shadow:
       0 20px 40px -10px rgba(0, 0, 0, 0.2),
       0 50px 80px -20px rgba(120, 119, 198, 0.15),
       inset 0 0 0 1px rgba(255, 255, 255, 0.4),
@@ -62,7 +62,7 @@
       inset 0 -1px 0 0 rgba(255, 255, 255, 0.2);
     overflow: hidden;
   }
-  
+
   /* Convex light effect */
   .glass-convex::before {
     content: '';
@@ -71,30 +71,25 @@
     left: 0;
     right: 0;
     height: 50%;
-    background: linear-gradient(
-      to bottom,
-      rgba(255, 255, 255, 0.3) 0%,
-      rgba(255, 255, 255, 0.1) 30%,
-      transparent 100%
-    );
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.1) 30%, transparent 100%);
     pointer-events: none;
   }
-  
+
   /* Simple card glass effect */
   .glass-card {
     @apply bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4;
-    box-shadow: 
+    box-shadow:
       0 4px 6px -1px rgba(0, 0, 0, 0.1),
       0 2px 4px -1px rgba(0, 0, 0, 0.06),
       inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   }
-  
+
   /* Glass text effect */
   .glass-text {
     @apply text-white;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
-  
+
   /* Glass button styles */
   .glass-button {
     @apply px-4 py-2 rounded-lg font-medium transition-all duration-200;
@@ -104,85 +99,104 @@
     color: white;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
-  
+
   .glass-button:hover {
     background: rgba(255, 255, 255, 0.15);
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
-  
+
   .glass-button:active {
     transform: translateY(0);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
-  
+
   /* Primary glass button */
   .glass-button-primary {
     @apply glass-button;
     background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(236, 72, 153, 0.3));
     border: 1px solid rgba(255, 255, 255, 0.3);
   }
-  
+
   .glass-button-primary:hover {
     background: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(236, 72, 153, 0.4));
   }
-  
+
   /* Insight card glass effects */
   .insight-alert {
     @apply bg-red-500/20 border-red-300/30;
   }
-  
+
   .insight-suggestion {
     @apply bg-blue-500/20 border-blue-300/30;
   }
-  
+
   .insight-tip {
     @apply bg-green-500/20 border-green-300/30;
   }
-  
+
   .insight-pattern {
     @apply bg-purple-500/20 border-purple-300/30;
   }
-  
+
   /* Animated gradient text */
   .ai-gradient-text {
     @apply font-bold bg-clip-text text-transparent;
-    background-image: linear-gradient(
-      135deg,
-      #667eea 0%,
-      #764ba2 25%,
-      #f093fb 50%,
-      #f5576c 75%,
-      #667eea 100%
-    );
+    background-image: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #667eea 100%);
     background-size: 200% 200%;
     animation: gradient 3s ease infinite;
   }
-  
+
   /* Category color classes */
-  .category-work { @apply bg-blue-500; }
-  .category-social { @apply bg-pink-500; }
-  .category-entertainment { @apply bg-purple-500; }
-  .category-shopping { @apply bg-green-500; }
-  .category-news { @apply bg-orange-500; }
-  .category-education { @apply bg-indigo-500; }
-  .category-productivity { @apply bg-teal-500; }
-  .category-development { @apply bg-gray-600; }
-  .category-finance { @apply bg-yellow-600; }
-  .category-health { @apply bg-red-500; }
-  .category-travel { @apply bg-cyan-500; }
-  .category-food { @apply bg-amber-500; }
-  .category-uncategorized { @apply bg-gray-500; }
-  
+  .category-work {
+    @apply bg-blue-500;
+  }
+  .category-social {
+    @apply bg-pink-500;
+  }
+  .category-entertainment {
+    @apply bg-purple-500;
+  }
+  .category-shopping {
+    @apply bg-green-500;
+  }
+  .category-news {
+    @apply bg-orange-500;
+  }
+  .category-education {
+    @apply bg-indigo-500;
+  }
+  .category-productivity {
+    @apply bg-teal-500;
+  }
+  .category-development {
+    @apply bg-gray-600;
+  }
+  .category-finance {
+    @apply bg-yellow-600;
+  }
+  .category-health {
+    @apply bg-red-500;
+  }
+  .category-travel {
+    @apply bg-cyan-500;
+  }
+  .category-food {
+    @apply bg-amber-500;
+  }
+  .category-uncategorized {
+    @apply bg-gray-500;
+  }
+
   /* Animated blob for background */
   .animate-blob {
     animation: blob 7s infinite;
   }
-  
+
   .animation-delay-2000 {
     animation-delay: 2s;
   }
-  
+
   .animation-delay-4000 {
     animation-delay: 4s;
   }
@@ -193,30 +207,30 @@
   .scrollbar-thin {
     scrollbar-width: thin;
   }
-  
+
   .scrollbar-thumb-white\/20 {
     scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
   }
-  
+
   .scrollbar-track-transparent {
     scrollbar-color: transparent transparent;
   }
-  
+
   /* Webkit scrollbar styles */
   .scrollbar-thin::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background-color: rgba(255, 255, 255, 0.2);
     border-radius: 3px;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background-color: rgba(255, 255, 255, 0.3);
   }
@@ -224,7 +238,8 @@
 
 /* Keyframe animations */
 @keyframes gradient {
-  0%, 100% {
+  0%,
+  100% {
     background-position: 0% 50%;
   }
   50% {
@@ -248,7 +263,8 @@
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {

@@ -1,12 +1,12 @@
-import React, { useState } from "react"
+import React, { useState } from 'react';
 
 /**
  * 파비콘 컴포넌트의 Props 타입 정의
  */
 interface FavIconProps {
-  url?: string        // 파비콘 URL
-  size?: number       // 아이콘 크기 (px)
-  className?: string  // 추가 CSS 클래스
+  url?: string; // 파비콘 URL
+  size?: number; // 아이콘 크기 (px)
+  className?: string; // 추가 CSS 클래스
 }
 
 /**
@@ -16,33 +16,29 @@ interface FavIconProps {
  * @component
  * @param {FavIconProps} props - 컴포넌트 속성
  */
-export const FavIcon: React.FC<FavIconProps> = ({
-  url,
-  size = 20,
-  className = ""
-}) => {
+export const FavIcon: React.FC<FavIconProps> = ({ url, size = 20, className = '' }) => {
   // 이미지 로드 에러 상태
-  const [hasError, setHasError] = useState(false)
+  const [hasError, setHasError] = useState(false);
   // 이미지 로딩 상태
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(true);
 
   /**
    * 도메인 첫 글자를 기반으로 대체 아이콘 생성
    * @returns {string} 대체 아이콘 텍스트
    */
   const getFallbackIcon = () => {
-    if (!url) return "?"
+    if (!url) return '?';
     try {
-      const hostname = new URL(url).hostname
+      const hostname = new URL(url).hostname;
       // www. 접두사 제거
-      const cleanHostname = hostname.replace(/^www\./, '')
+      const cleanHostname = hostname.replace(/^www\./, '');
       // 첫 글자를 대문자로 변환하여 반환
-      return cleanHostname.charAt(0).toUpperCase()
+      return cleanHostname.charAt(0).toUpperCase();
     } catch {
       // URL 파싱 실패 시 기본 아이콘
-      return "?"
+      return '?';
     }
-  }
+  };
 
   // URL이 없거나 로드 에러가 발생한 경우 대체 아이콘 렌더링
   if (!url || hasError) {
@@ -53,13 +49,13 @@ export const FavIcon: React.FC<FavIconProps> = ({
           width: size,
           height: size,
           minWidth: size,
-          minHeight: size
+          minHeight: size,
         }}
         aria-label="웹사이트 아이콘"
       >
         {getFallbackIcon()}
       </div>
-    )
+    );
   }
 
   return (
@@ -72,7 +68,7 @@ export const FavIcon: React.FC<FavIconProps> = ({
             width: size,
             height: size,
             minWidth: size,
-            minHeight: size
+            minHeight: size,
           }}
           aria-label="아이콘 로딩 중"
         />
@@ -85,14 +81,14 @@ export const FavIcon: React.FC<FavIconProps> = ({
         style={{ width: size, height: size }}
         onError={() => {
           // 이미지 로드 실패 시
-          setHasError(true)
-          setIsLoading(false)
+          setHasError(true);
+          setIsLoading(false);
         }}
         onLoad={() => {
           // 이미지 로드 성공 시
-          setIsLoading(false)
+          setIsLoading(false);
         }}
       />
     </>
-  )
-}
+  );
+};

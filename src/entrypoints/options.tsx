@@ -1,18 +1,18 @@
-import React from "react"
-import Dashboard from "../tabs/dashboard"
-import "../styles/options.css"
+import React from 'react';
+import Dashboard from '../tabs/dashboard';
+import '../styles/options.css';
 
 function OptionsPage() {
-  return <Dashboard />
+  return <Dashboard />;
 }
 
-export default OptionsPage
+export default OptionsPage;
 
 // Mount the app
-import { createRoot } from 'react-dom/client'
+import { createRoot } from 'react-dom/client';
 
-const container = document.getElementById('root')
+const container = document.getElementById('root');
 if (container) {
-  const root = createRoot(container)
-  root.render(<OptionsPage />)
+  const root = createRoot(container);
+  root.render(<OptionsPage />);
 }

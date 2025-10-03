@@ -1,12 +1,12 @@
-import React from 'react'
-import { useTranslation } from 'react-i18next'
+import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 /**
  * 도움말 모달 컴포넌트의 Props
  */
 interface HelpModalProps {
-  isOpen: boolean     // 모달 열림 상태
-  onClose: () => void  // 모달 닫기 핸들러
+  isOpen: boolean; // 모달 열림 상태
+  onClose: () => void; // 모달 닫기 핸들러
 }
 
 /**
@@ -17,39 +17,45 @@ interface HelpModalProps {
  * @param {HelpModalProps} props - 컴포넌트 속성
  */
 export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
 
   // 모달이 닫혀있으면 렌더링하지 않음
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   // 기능 설명 데이터 (다국어 지원)
   const features = [
     {
-      icon: '🤖',  // AI 스마트 정리
+      icon: '🤖', // AI 스마트 정리
       title: t('modal.help.features.aiSmartOrganize.title'),
       description: t('modal.help.features.aiSmartOrganize.description'),
-      details: t('modal.help.features.aiSmartOrganize.details', { returnObjects: true }) as string[]
+      details: t('modal.help.features.aiSmartOrganize.details', {
+        returnObjects: true,
+      }) as string[],
     },
     {
-      icon: '🏷️',  // 카테고리 관리
+      icon: '🏷️', // 카테고리 관리
       title: t('modal.help.features.categoryManagement.title'),
       description: t('modal.help.features.categoryManagement.description'),
-      details: t('modal.help.features.categoryManagement.details', { returnObjects: true }) as string[]
+      details: t('modal.help.features.categoryManagement.details', {
+        returnObjects: true,
+      }) as string[],
     },
     {
-      icon: '📊',  // 생산성 인사이트
+      icon: '📊', // 생산성 인사이트
       title: t('modal.help.features.productivityInsights.title'),
       description: t('modal.help.features.productivityInsights.description'),
-      details: t('modal.help.features.productivityInsights.details', { returnObjects: true }) as string[]
+      details: t('modal.help.features.productivityInsights.details', {
+        returnObjects: true,
+      }) as string[],
     },
     {
-      icon: '🧹',  // 스마트 정리
+      icon: '🧹', // 스마트 정리
       title: t('modal.help.features.smartCleanup.title'),
       description: t('modal.help.features.smartCleanup.description'),
-      details: t('modal.help.features.smartCleanup.details', { returnObjects: true }) as string[]
-    }
-  ]
-  
+      details: t('modal.help.features.smartCleanup.details', { returnObjects: true }) as string[],
+    },
+  ];
+
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-[9999] p-4">
       <div className="glass-main rounded-[24px] w-full max-w-3xl max-h-[90vh] overflow-hidden">
@@ -64,14 +70,11 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
               <p className="text-sm glass-text opacity-70">{t('modal.help.subtitle')}</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="glass-button-primary !p-2 !px-4"
-          >
+          <button onClick={onClose} className="glass-button-primary !p-2 !px-4">
             {t('actions.close')}
           </button>
         </div>
-        
+
         {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-88px)]">
           {/* AI Learning Status */}
@@ -82,9 +85,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold glass-text mb-2">{t('modal.help.aiLearningStatus.title')}</h3>
-                <p className="text-sm glass-text opacity-80 mb-3">
-                  {t('modal.help.aiLearningStatus.description')}
-                </p>
+                <p className="text-sm glass-text opacity-80 mb-3">{t('modal.help.aiLearningStatus.description')}</p>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
                     <div className="h-full w-1/3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-pulse" />
@@ -94,7 +95,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
               </div>
             </div>
           </div>
-          
+
           {/* Features Grid */}
           <div className="grid gap-4">
             {features.map((feature, index) => (
@@ -117,7 +118,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
               </div>
             ))}
           </div>
-          
+
           {/* Tips Section */}
           <div className="mt-6 glass-card bg-gradient-to-br from-purple-500/10 to-pink-500/10">
             <h3 className="font-semibold glass-text mb-3 flex items-center gap-2">
@@ -136,5 +137,5 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

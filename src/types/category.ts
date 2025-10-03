@@ -1,108 +1,207 @@
 export interface Category {
-  id: string
-  name: string
-  color: chrome.tabGroups.ColorEnum
-  domains: string[]
-  keywords: string[]
-  isDefault: boolean
-  isSystem?: boolean  // System categories cannot be edited or deleted
-  createdAt: number
+  id: string;
+  name: string;
+  color: chrome.tabGroups.ColorEnum;
+  domains: string[];
+  keywords: string[];
+  isDefault: boolean;
+  isSystem?: boolean; // System categories cannot be edited or deleted
+  createdAt: number;
 }
 
 export interface CategoryMapping {
-  [domain: string]: string // domain -> categoryId
+  [domain: string]: string; // domain -> categoryId
 }
 
 export const DEFAULT_CATEGORIES: Category[] = [
   {
-    id: "work",
-    name: "Work",
-    color: "blue",
-    domains: ["github.com", "gitlab.com", "bitbucket.org", "stackoverflow.com", "localhost", "vercel.app", "netlify.app", "jira.atlassian.com", "slack.com", "notion.so", "figma.com", "linear.app"],
-    keywords: ["dev", "code", "api", "project", "design", "task", "deploy"],
+    id: 'work',
+    name: 'Work',
+    color: 'blue',
+    domains: [
+      'github.com',
+      'gitlab.com',
+      'bitbucket.org',
+      'stackoverflow.com',
+      'localhost',
+      'vercel.app',
+      'netlify.app',
+      'jira.atlassian.com',
+      'slack.com',
+      'notion.so',
+      'figma.com',
+      'linear.app',
+    ],
+    keywords: ['dev', 'code', 'api', 'project', 'design', 'task', 'deploy'],
     isDefault: true,
-    createdAt: Date.now()
+    createdAt: Date.now(),
   },
   {
-    id: "social",
-    name: "Social",
-    color: "pink",
-    domains: ["twitter.com", "x.com", "facebook.com", "instagram.com", "linkedin.com", "discord.com", "telegram.org", "whatsapp.com", "threads.net", "mastodon.social"],
-    keywords: ["social", "chat", "message", "post", "community"],
+    id: 'social',
+    name: 'Social',
+    color: 'pink',
+    domains: [
+      'twitter.com',
+      'x.com',
+      'facebook.com',
+      'instagram.com',
+      'linkedin.com',
+      'discord.com',
+      'telegram.org',
+      'whatsapp.com',
+      'threads.net',
+      'mastodon.social',
+    ],
+    keywords: ['social', 'chat', 'message', 'post', 'community'],
     isDefault: true,
-    createdAt: Date.now()
+    createdAt: Date.now(),
   },
   {
-    id: "entertainment",
-    name: "Entertainment",
-    color: "purple",
-    domains: ["youtube.com", "netflix.com", "twitch.tv", "spotify.com", "soundcloud.com", "vimeo.com", "hulu.com", "disneyplus.com", "primevideo.com", "hbomax.com"],
-    keywords: ["video", "watch", "stream", "music", "movie", "show", "podcast"],
+    id: 'entertainment',
+    name: 'Entertainment',
+    color: 'purple',
+    domains: [
+      'youtube.com',
+      'netflix.com',
+      'twitch.tv',
+      'spotify.com',
+      'soundcloud.com',
+      'vimeo.com',
+      'hulu.com',
+      'disneyplus.com',
+      'primevideo.com',
+      'hbomax.com',
+    ],
+    keywords: ['video', 'watch', 'stream', 'music', 'movie', 'show', 'podcast'],
     isDefault: true,
-    createdAt: Date.now()
+    createdAt: Date.now(),
   },
   {
-    id: "shopping",
-    name: "Shopping",
-    color: "yellow",
-    domains: ["amazon.com", "ebay.com", "aliexpress.com", "etsy.com", "walmart.com", "target.com", "bestbuy.com", "shopify.com", "wish.com", "ikea.com"],
-    keywords: ["shop", "store", "buy", "cart", "order", "deal", "product"],
+    id: 'shopping',
+    name: 'Shopping',
+    color: 'yellow',
+    domains: [
+      'amazon.com',
+      'ebay.com',
+      'aliexpress.com',
+      'etsy.com',
+      'walmart.com',
+      'target.com',
+      'bestbuy.com',
+      'shopify.com',
+      'wish.com',
+      'ikea.com',
+    ],
+    keywords: ['shop', 'store', 'buy', 'cart', 'order', 'deal', 'product'],
     isDefault: true,
-    createdAt: Date.now()
+    createdAt: Date.now(),
   },
   {
-    id: "news",
-    name: "News & Media",
-    color: "orange",
-    domains: ["cnn.com", "bbc.com", "reddit.com", "hackernews.com", "nytimes.com", "reuters.com", "bloomberg.com", "techcrunch.com", "theverge.com", "arstechnica.com", "medium.com"],
-    keywords: ["news", "blog", "article", "media", "press", "tech"],
+    id: 'news',
+    name: 'News & Media',
+    color: 'orange',
+    domains: [
+      'cnn.com',
+      'bbc.com',
+      'reddit.com',
+      'hackernews.com',
+      'nytimes.com',
+      'reuters.com',
+      'bloomberg.com',
+      'techcrunch.com',
+      'theverge.com',
+      'arstechnica.com',
+      'medium.com',
+    ],
+    keywords: ['news', 'blog', 'article', 'media', 'press', 'tech'],
     isDefault: true,
-    createdAt: Date.now()
+    createdAt: Date.now(),
   },
   {
-    id: "education",
-    name: "Education",
-    color: "cyan",
-    domains: ["coursera.org", "udemy.com", "khanacademy.org", "edx.org", "udacity.com", "pluralsight.com", "wikipedia.org", "skillshare.com", "masterclass.com", "duolingo.com"],
-    keywords: ["learn", "course", "study", "education", "tutorial", "training", "class"],
+    id: 'education',
+    name: 'Education',
+    color: 'cyan',
+    domains: [
+      'coursera.org',
+      'udemy.com',
+      'khanacademy.org',
+      'edx.org',
+      'udacity.com',
+      'pluralsight.com',
+      'wikipedia.org',
+      'skillshare.com',
+      'masterclass.com',
+      'duolingo.com',
+    ],
+    keywords: ['learn', 'course', 'study', 'education', 'tutorial', 'training', 'class'],
     isDefault: true,
-    createdAt: Date.now()
+    createdAt: Date.now(),
   },
   {
-    id: "finance",
-    name: "Finance",
-    color: "green",
-    domains: ["bankofamerica.com", "chase.com", "paypal.com", "coinbase.com", "robinhood.com", "mint.com", "personalcapital.com", "binance.com", "kraken.com", "wise.com"],
-    keywords: ["bank", "finance", "money", "payment", "invest", "crypto", "trading"],
+    id: 'finance',
+    name: 'Finance',
+    color: 'green',
+    domains: [
+      'bankofamerica.com',
+      'chase.com',
+      'paypal.com',
+      'coinbase.com',
+      'robinhood.com',
+      'mint.com',
+      'personalcapital.com',
+      'binance.com',
+      'kraken.com',
+      'wise.com',
+    ],
+    keywords: ['bank', 'finance', 'money', 'payment', 'invest', 'crypto', 'trading'],
     isDefault: true,
-    createdAt: Date.now()
+    createdAt: Date.now(),
   },
   {
-    id: "productivity",
-    name: "Productivity",
-    color: "red",
-    domains: ["google.com", "outlook.com", "gmail.com", "calendar.google.com", "trello.com", "asana.com", "todoist.com", "evernote.com", "monday.com", "clickup.com"],
-    keywords: ["email", "calendar", "task", "todo", "note", "organize", "plan"],
+    id: 'productivity',
+    name: 'Productivity',
+    color: 'red',
+    domains: [
+      'google.com',
+      'outlook.com',
+      'gmail.com',
+      'calendar.google.com',
+      'trello.com',
+      'asana.com',
+      'todoist.com',
+      'evernote.com',
+      'monday.com',
+      'clickup.com',
+    ],
+    keywords: ['email', 'calendar', 'task', 'todo', 'note', 'organize', 'plan'],
     isDefault: true,
-    createdAt: Date.now()
+    createdAt: Date.now(),
   },
   {
-    id: "research",
-    name: "Research",
-    color: "purple",
-    domains: ["scholar.google.com", "pubmed.ncbi.nlm.nih.gov", "arxiv.org", "jstor.org", "researchgate.net", "academia.edu", "sciencedirect.com"],
-    keywords: ["research", "paper", "academic", "study", "journal", "science"],
+    id: 'research',
+    name: 'Research',
+    color: 'purple',
+    domains: [
+      'scholar.google.com',
+      'pubmed.ncbi.nlm.nih.gov',
+      'arxiv.org',
+      'jstor.org',
+      'researchgate.net',
+      'academia.edu',
+      'sciencedirect.com',
+    ],
+    keywords: ['research', 'paper', 'academic', 'study', 'journal', 'science'],
     isDefault: true,
-    createdAt: Date.now()
+    createdAt: Date.now(),
   },
   {
-    id: "uncategorized",
-    name: "Uncategorized",
-    color: "grey",
+    id: 'uncategorized',
+    name: 'Uncategorized',
+    color: 'grey',
     domains: [],
     keywords: [],
     isDefault: true,
-    isSystem: true,  // This category cannot be edited or deleted
-    createdAt: Date.now()
-  }
-]
+    isSystem: true, // This category cannot be edited or deleted
+    createdAt: Date.now(),
+  },
+];

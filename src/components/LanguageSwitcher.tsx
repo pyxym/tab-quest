@@ -1,21 +1,21 @@
-import React, { useState, useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 /**
  * 지원 언어 목록
  */
 const languages = [
-  { code: 'en', name: 'English', flag: '🇺🇸' },    // 영어
-  { code: 'ko', name: '한국어', flag: '🇰🇷' },       // 한국어
-  { code: 'ja', name: '日本語', flag: '🇯🇵' }        // 일본어
-]
+  { code: 'en', name: 'English', flag: '🇺🇸' }, // 영어
+  { code: 'ko', name: '한국어', flag: '🇰🇷' }, // 한국어
+  { code: 'ja', name: '日本語', flag: '🇯🇵' }, // 일본어
+];
 
 /**
  * 언어 전환 컴포넌트의 Props
  */
 interface LanguageSwitcherProps {
-  inDropdown?: boolean          // 드롭다운 모드 여부 (설정 메뉴용)
-  onLanguageChange?: () => void  // 언어 변경 시 콜백
+  inDropdown?: boolean; // 드롭다운 모드 여부 (설정 메뉴용)
+  onLanguageChange?: () => void; // 언어 변경 시 콜백
 }
 
 /**
@@ -27,24 +27,24 @@ interface LanguageSwitcherProps {
  * @param {LanguageSwitcherProps} props - 컴포넌트 속성
  */
 export function LanguageSwitcher({ inDropdown = false, onLanguageChange }: LanguageSwitcherProps) {
-  const { i18n } = useTranslation()
-  const [isOpen, setIsOpen] = useState(false)
-  const [currentLang, setCurrentLang] = useState(i18n.language)
+  const { i18n } = useTranslation();
+  const [isOpen, setIsOpen] = useState(false);
+  const [currentLang, setCurrentLang] = useState(i18n.language);
 
   // i18n 언어 변경 이벤트 리스너
   useEffect(() => {
     // 언어가 변경되면 현재 언어 상태 업데이트
     const handleLanguageChanged = (lng: string) => {
-      setCurrentLang(lng)
-    }
+      setCurrentLang(lng);
+    };
 
-    i18n.on('languageChanged', handleLanguageChanged)
+    i18n.on('languageChanged', handleLanguageChanged);
 
     // 클린업: 이벤트 리스너 제거
     return () => {
-      i18n.off('languageChanged', handleLanguageChanged)
-    }
-  }, [i18n])
+      i18n.off('languageChanged', handleLanguageChanged);
+    };
+  }, [i18n]);
 
   /**
    * 언어 변경 핸들러
@@ -52,25 +52,25 @@ export function LanguageSwitcher({ inDropdown = false, onLanguageChange }: Langu
    */
   const handleLanguageChange = async (langCode: string) => {
     // Chrome 동기화 스토리지에 저장
-    await chrome.storage.sync.set({ language: langCode })
+    await chrome.storage.sync.set({ language: langCode });
     // i18n 언어 변경
-    await i18n.changeLanguage(langCode)
-    setCurrentLang(langCode)
-    setIsOpen(false)
+    await i18n.changeLanguage(langCode);
+    setCurrentLang(langCode);
+    setIsOpen(false);
     // 콜백 함수 실행 (있는 경우)
     if (onLanguageChange) {
-      onLanguageChange()
+      onLanguageChange();
     }
-  }
+  };
 
-  const currentLanguage = languages.find(l => l.code === currentLang) || languages[0]
+  const currentLanguage = languages.find((l) => l.code === currentLang) || languages[0];
 
   // Dropdown mode for settings menu
   if (inDropdown) {
     return (
       <div className="py-1">
         <div className="px-4 py-2 text-xs glass-text opacity-60">Language</div>
-        {languages.map(lang => (
+        {languages.map((lang) => (
           <button
             key={lang.code}
             onClick={() => handleLanguageChange(lang.code)}
@@ -82,13 +82,17 @@ export function LanguageSwitcher({ inDropdown = false, onLanguageChange }: Langu
             <span>{lang.name}</span>
             {currentLang === lang.code && (
               <svg className="w-3 h-3 ml-auto" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clipRule="evenodd"
+                />
               </svg>
             )}
           </button>
         ))}
       </div>
-    )
+    );
   }
 
   // Standalone button mode
@@ -105,12 +109,9 @@ export function LanguageSwitcher({ inDropdown = false, onLanguageChange }: Langu
 
       {isOpen && (
         <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setIsOpen(false)}
-          />
+          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
           <div className="absolute right-0 mt-2 w-40 glass-card rounded-lg shadow-lg z-50">
-            {languages.map(lang => (
+            {languages.map((lang) => (
               <button
                 key={lang.code}
                 onClick={() => handleLanguageChange(lang.code)}
@@ -126,5 +127,5 @@ export function LanguageSwitcher({ inDropdown = false, onLanguageChange }: Langu
         </>
       )}
     </div>
-  )
+  );
 }

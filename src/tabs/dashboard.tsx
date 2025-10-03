@@ -1,113 +1,115 @@
-import React, { useEffect, useState } from "react"
-import { useTranslation } from 'react-i18next'
-import { AILogo } from "../components/AILogo"
-import { ProductivityScore } from "../components/ProductivityScore"
-import { storageUtils } from "../utils/storage"
-import '../lib/i18n'
-import "../styles/dashboard.css"
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { AILogo } from '../components/AILogo';
+import { ProductivityScore } from '../components/ProductivityScore';
+import { storageUtils } from '../utils/storage';
+import '../lib/i18n';
+import '../styles/dashboard.css';
 
 interface TabData {
-  id: number
-  url: string
-  title: string
-  domain: string
-  category: string
-  lastAccessed: number
-  accessCount: number
+  id: number;
+  url: string;
+  title: string;
+  domain: string;
+  category: string;
+  lastAccessed: number;
+  accessCount: number;
 }
 
 interface CategoryStats {
-  name: string
-  count: number
-  percentage: number
-  color: string
+  name: string;
+  count: number;
+  percentage: number;
+  color: string;
 }
 
 interface TimeStats {
-  hour: number
-  count: number
+  hour: number;
+  count: number;
 }
 
 function Dashboard() {
-  const { t } = useTranslation()
-  const [tabs, setTabs] = useState<TabData[]>([])
-  const [categoryStats, setCategoryStats] = useState<CategoryStats[]>([])
-  const [productivityScore, setProductivityScore] = useState(0)
-  const [mostVisited, setMostVisited] = useState<TabData[]>([])
-  const [timeStats, setTimeStats] = useState<TimeStats[]>([])
-  const [totalTabs, setTotalTabs] = useState(0)
-  const [duplicates, setDuplicates] = useState(0)
+  const { t } = useTranslation();
+  const [tabs, setTabs] = useState<TabData[]>([]);
+  const [categoryStats, setCategoryStats] = useState<CategoryStats[]>([]);
+  const [productivityScore, setProductivityScore] = useState(0);
+  const [mostVisited, setMostVisited] = useState<TabData[]>([]);
+  const [timeStats, setTimeStats] = useState<TimeStats[]>([]);
+  const [totalTabs, setTotalTabs] = useState(0);
+  const [duplicates, setDuplicates] = useState(0);
 
   useEffect(() => {
-    loadDashboardData()
-  }, [])
+    loadDashboardData();
+  }, []);
 
   async function loadDashboardData() {
     // Get all tabs
-    const allTabs = await chrome.tabs.query({})
-    setTotalTabs(allTabs.length)
+    const allTabs = await chrome.tabs.query({});
+    setTotalTabs(allTabs.length);
 
     // Get tabs data from storage
-    const tabsData = (await storageUtils.getItem<any>('local:tabsData')) || {}
-    
+    const tabsData = (await storageUtils.getItem<any>('local:tabsData')) || {};
+
     // Get categories from storage
-    const categories = await storageUtils.getCategories()
-    
+    const categories = await storageUtils.getCategories();
+
     // Convert to array and analyze
-    const tabsArray = Object.values(tabsData) as TabData[]
-    setTabs(tabsArray)
+    const tabsArray = Object.values(tabsData) as TabData[];
+    setTabs(tabsArray);
 
     // Calculate category statistics
-    const categoryCount: Record<string, number> = {}
-    tabsArray.forEach(tab => {
-      const category = tab.category || "other"
-      categoryCount[category] = (categoryCount[category] || 0) + 1
-    })
+    const categoryCount: Record<string, number> = {};
+    tabsArray.forEach((tab) => {
+      const category = tab.category || 'other';
+      categoryCount[category] = (categoryCount[category] || 0) + 1;
+    });
 
-    const stats: CategoryStats[] = categories.map((cat: any) => ({
-      name: cat.name,
-      count: categoryCount[cat.id] || 0,
-      percentage: Math.round(((categoryCount[cat.id] || 0) / tabsArray.length) * 100) || 0,
-      color: getColorHex(cat.color)
-    })).filter((stat: CategoryStats) => stat.count > 0)
+    const stats: CategoryStats[] = categories
+      .map((cat: any) => ({
+        name: cat.name,
+        count: categoryCount[cat.id] || 0,
+        percentage: Math.round(((categoryCount[cat.id] || 0) / tabsArray.length) * 100) || 0,
+        color: getColorHex(cat.color),
+      }))
+      .filter((stat: CategoryStats) => stat.count > 0);
 
-    setCategoryStats(stats)
+    setCategoryStats(stats);
 
     // Calculate productivity score
-    const workTabs = categoryCount["work"] || 0
-    const entertainmentTabs = categoryCount["entertainment"] || 0
-    const socialTabs = categoryCount["social"] || 0
-    const totalProductiveTabs = workTabs
-    const totalDistractingTabs = entertainmentTabs + socialTabs
-    
-    let score = 50
+    const workTabs = categoryCount['work'] || 0;
+    const entertainmentTabs = categoryCount['entertainment'] || 0;
+    const socialTabs = categoryCount['social'] || 0;
+    const totalProductiveTabs = workTabs;
+    const totalDistractingTabs = entertainmentTabs + socialTabs;
+
+    let score = 50;
     if (totalProductiveTabs + totalDistractingTabs > 0) {
-      score = Math.round((totalProductiveTabs / (totalProductiveTabs + totalDistractingTabs)) * 100)
+      score = Math.round((totalProductiveTabs / (totalProductiveTabs + totalDistractingTabs)) * 100);
     }
-    setProductivityScore(score)
+    setProductivityScore(score);
 
     // Find most visited tabs
-    const sortedByAccess = [...tabsArray].sort((a, b) => b.accessCount - a.accessCount)
-    setMostVisited(sortedByAccess.slice(0, 5))
+    const sortedByAccess = [...tabsArray].sort((a, b) => b.accessCount - a.accessCount);
+    setMostVisited(sortedByAccess.slice(0, 5));
 
     // Calculate time distribution
-    const hourCounts: Record<number, number> = {}
-    tabsArray.forEach(tab => {
-      const hour = new Date(tab.lastAccessed).getHours()
-      hourCounts[hour] = (hourCounts[hour] || 0) + 1
-    })
+    const hourCounts: Record<number, number> = {};
+    tabsArray.forEach((tab) => {
+      const hour = new Date(tab.lastAccessed).getHours();
+      hourCounts[hour] = (hourCounts[hour] || 0) + 1;
+    });
 
     const timeData: TimeStats[] = Array.from({ length: 24 }, (_, i) => ({
       hour: i,
-      count: hourCounts[i] || 0
-    }))
-    setTimeStats(timeData)
+      count: hourCounts[i] || 0,
+    }));
+    setTimeStats(timeData);
 
     // Count duplicates
-    const duplicatesResponse = await chrome.runtime.sendMessage({ action: "findDuplicates" })
+    const duplicatesResponse = await chrome.runtime.sendMessage({ action: 'findDuplicates' });
     if (duplicatesResponse) {
-      const totalDuplicates = duplicatesResponse.reduce((sum: number, group: any) => sum + group.count - 1, 0)
-      setDuplicates(totalDuplicates)
+      const totalDuplicates = duplicatesResponse.reduce((sum: number, group: any) => sum + group.count - 1, 0);
+      setDuplicates(totalDuplicates);
     }
   }
 
@@ -125,12 +127,8 @@ function Dashboard() {
                   {t('dashboard.betaBadge')}
                 </span>
               </div>
-              <p className="text-gray-600 dark:text-gray-400">
-                {t('dashboard.subtitle')}
-              </p>
-              <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                ⚠️ {t('dashboard.betaNotice')}
-              </p>
+              <p className="text-gray-600 dark:text-gray-400">{t('dashboard.subtitle')}</p>
+              <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">⚠️ {t('dashboard.betaNotice')}</p>
             </div>
           </div>
           <ProductivityScore score={productivityScore} trend="up" />
@@ -174,7 +172,7 @@ function Dashboard() {
                       className="h-2 rounded-full transition-all duration-500"
                       style={{
                         width: `${stat.percentage}%`,
-                        backgroundColor: stat.color
+                        backgroundColor: stat.color,
                       }}
                     />
                   </div>
@@ -207,8 +205,8 @@ function Dashboard() {
             <h2 className="text-xl font-semibold mb-4">{t('dashboard.sections.activityByHour')}</h2>
             <div className="flex items-end gap-1 h-32">
               {timeStats.map((stat) => {
-                const maxCount = Math.max(...timeStats.map(s => s.count))
-                const height = maxCount > 0 ? (stat.count / maxCount) * 100 : 0
+                const maxCount = Math.max(...timeStats.map((s) => s.count));
+                const height = maxCount > 0 ? (stat.count / maxCount) * 100 : 0;
                 return (
                   <div
                     key={stat.hour}
@@ -219,7 +217,7 @@ function Dashboard() {
                       {stat.hour}:00 - {stat.count} {t('dashboard.sections.tabs')}
                     </div>
                   </div>
-                )
+                );
               })}
             </div>
             <div className="flex justify-between mt-2 text-xs text-gray-500">
@@ -238,17 +236,13 @@ function Dashboard() {
               <div className="bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/20 dark:to-blue-900/20 p-4 rounded-lg">
                 <h3 className="font-medium mb-2">💡 {t('dashboard.insights.productivityTip')}</h3>
                 <p className="text-sm text-gray-700 dark:text-gray-300">
-                  {productivityScore < 50
-                    ? t('dashboard.insights.lowProductivity')
-                    : t('dashboard.insights.highProductivity')}
+                  {productivityScore < 50 ? t('dashboard.insights.lowProductivity') : t('dashboard.insights.highProductivity')}
                 </p>
               </div>
               <div className="bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 p-4 rounded-lg">
                 <h3 className="font-medium mb-2">🎯 {t('dashboard.insights.focusSuggestion')}</h3>
                 <p className="text-sm text-gray-700 dark:text-gray-300">
-                  {duplicates > 5
-                    ? t('dashboard.insights.manyDuplicates', { count: duplicates })
-                    : t('dashboard.insights.fewDuplicates')}
+                  {duplicates > 5 ? t('dashboard.insights.manyDuplicates', { count: duplicates }) : t('dashboard.insights.fewDuplicates')}
                 </p>
               </div>
             </div>
@@ -256,23 +250,23 @@ function Dashboard() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // Helper function to get color hex values
 function getColorHex(color: string): string {
   const colorMap: Record<string, string> = {
-    blue: "#3B82F6",
-    cyan: "#06B6D4",
-    green: "#10B981",
-    yellow: "#F59E0B",
-    orange: "#F97316",
-    red: "#EF4444",
-    pink: "#EC4899",
-    purple: "#8B5CF6",
-    grey: "#6B7280"
-  }
-  return colorMap[color] || colorMap.grey
+    blue: '#3B82F6',
+    cyan: '#06B6D4',
+    green: '#10B981',
+    yellow: '#F59E0B',
+    orange: '#F97316',
+    red: '#EF4444',
+    pink: '#EC4899',
+    purple: '#8B5CF6',
+    grey: '#6B7280',
+  };
+  return colorMap[color] || colorMap.grey;
 }
 
-export default Dashboard
+export default Dashboard;

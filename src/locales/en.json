@@ -131,11 +131,7 @@
     "smartOrganize": {
       "title": "Smart Organize",
       "description": "Smart organize tabs based on categories.",
-      "features": [
-        "Create tab groups in category order",
-        "Automatic domain-based classification",
-        "Organize all tabs with one click"
-      ]
+      "features": ["Create tab groups in category order", "Automatic domain-based classification", "Organize all tabs with one click"]
     },
     "analytics": "View detailed tab usage analytics",
     "categories": "Manage your tab categories",
@@ -218,20 +214,12 @@
         "productivityInsights": {
           "title": "Productivity Insights",
           "description": "Check browsing patterns and productivity scores analyzed by AI.",
-          "details": [
-            "Usage pattern analysis by time period",
-            "Time tracking by category",
-            "AI suggestions for productivity improvement"
-          ]
+          "details": ["Usage pattern analysis by time period", "Time tracking by category", "AI suggestions for productivity improvement"]
         },
         "smartCleanup": {
           "title": "Smart Cleanup",
           "description": "Optimize browser performance with automatic duplicate tab detection and cleanup.",
-          "details": [
-            "URL-based duplicate tab detection",
-            "Option to keep the most recent tab",
-            "Memory usage optimization"
-          ]
+          "details": ["URL-based duplicate tab detection", "Option to keep the most recent tab", "Memory usage optimization"]
         }
       },
       "proTips": {

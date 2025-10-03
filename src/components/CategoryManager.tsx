@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from "react"
-import { useTranslation } from 'react-i18next'
-import { useCategoryStore } from "../store/categoryStore"
-import { InfoTooltip } from "./InfoTooltip"
-import { CategoryEditModal } from "./CategoryEditModal"
-import type { Category } from "../types/category"
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useCategoryStore } from '../store/categoryStore';
+import { InfoTooltip } from './InfoTooltip';
+import { CategoryEditModal } from './CategoryEditModal';
+import type { Category } from '../types/category';
 
 /**
  * 카테고리 관리자 컴포넌트의 Props
  */
 interface CategoryManagerProps {
-  onClose: () => void  // 모달 닫기 핸들러
+  onClose: () => void; // 모달 닫기 핸들러
 }
 
 /**
@@ -21,21 +21,21 @@ interface CategoryManagerProps {
  * @param {CategoryManagerProps} props - 컴포넌트 속성
  */
 export const CategoryManager: React.FC<CategoryManagerProps> = ({ onClose }) => {
-  const { t } = useTranslation()
-  const { categories, loadCategories, addCategory, updateCategory, deleteCategory, reorderCategories } = useCategoryStore()
+  const { t } = useTranslation();
+  const { categories, loadCategories, addCategory, updateCategory, deleteCategory, reorderCategories } = useCategoryStore();
 
   // 모달 및 편집 상태 관리
-  const [isModalOpen, setIsModalOpen] = useState(false)            // 편집 모달 열림 상태
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null)  // 편집 중인 카테고리
+  const [isModalOpen, setIsModalOpen] = useState(false); // 편집 모달 열림 상태
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null); // 편집 중인 카테고리
 
   // 드래그 앤 드롭 상태 관리
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)    // 드래그 중인 항목 인덱스
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)  // 드롭 대상 인덱스
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null); // 드래그 중인 항목 인덱스
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null); // 드롭 대상 인덱스
 
   // 컴포넌트 마운트 시 카테고리 로드
   useEffect(() => {
-    loadCategories()
-  }, [loadCategories])
+    loadCategories();
+  }, [loadCategories]);
 
   /**
    * 카테고리 편집 핸들러
@@ -44,20 +44,20 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ onClose }) => 
   const handleEdit = (category: Category) => {
     // 시스템 카테고리 편집 방지
     if (category.isSystem) {
-      alert(t('tooltips.categoryManager.cannotEditSystem'))
-      return
+      alert(t('tooltips.categoryManager.cannotEditSystem'));
+      return;
     }
-    setEditingCategory(category)
-    setIsModalOpen(true)
-  }
+    setEditingCategory(category);
+    setIsModalOpen(true);
+  };
 
   /**
    * 새 카테고리 추가 핸들러
    */
   const handleAdd = () => {
-    setEditingCategory(null)
-    setIsModalOpen(true)
-  }
+    setEditingCategory(null);
+    setIsModalOpen(true);
+  };
 
   /**
    * 카테고리 저장 핸들러
@@ -66,7 +66,7 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ onClose }) => 
   const handleSave = async (name: string, color: chrome.tabGroups.ColorEnum) => {
     if (editingCategory) {
       // 기존 카테고리 업데이트
-      await updateCategory(editingCategory.id, { name, color })
+      await updateCategory(editingCategory.id, { name, color });
     } else {
       // 새 카테고리 추가
       await addCategory({
@@ -74,12 +74,12 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ onClose }) => 
         color,
         domains: [],
         keywords: [],
-        isDefault: false
-      })
+        isDefault: false,
+      });
     }
-    setIsModalOpen(false)
-    setEditingCategory(null)
-  }
+    setIsModalOpen(false);
+    setEditingCategory(null);
+  };
 
   /**
    * 드래그 시작 핸들러
@@ -88,76 +88,76 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ onClose }) => 
   const handleDragStart = (e: React.DragEvent, index: number) => {
     // 시스템 카테고리 드래그 방지
     if (categories[index].isSystem) {
-      e.preventDefault()
-      return
+      e.preventDefault();
+      return;
     }
-    setDraggedIndex(index)
-    e.dataTransfer.effectAllowed = 'move'
-  }
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
 
   /**
    * 드래그 오버 핸들러
    * 드롭 가능 영역 표시
    */
   const handleDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault()
-    e.dataTransfer.dropEffect = 'move'
-    setDragOverIndex(index)
-  }
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverIndex(index);
+  };
 
   /**
    * 드래그 종료 핸들러
    * 드래그 상태 초기화
    */
   const handleDragEnd = () => {
-    setDraggedIndex(null)
-    setDragOverIndex(null)
-  }
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
 
   /**
    * 드롭 핸들러
    * 카테고리 순서 재정렬 실행
    */
   const handleDrop = async (e: React.DragEvent, dropIndex: number) => {
-    e.preventDefault()
-    if (draggedIndex === null || draggedIndex === dropIndex) return
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === dropIndex) return;
 
     // 시스템 카테고리 위치에 드롭 방지
     if (categories[dropIndex].isSystem) {
-      setDraggedIndex(null)
-      setDragOverIndex(null)
-      return
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
     }
 
     // 카테고리 배열 재정렬
-    const newCategories = [...categories]
-    const [draggedItem] = newCategories.splice(draggedIndex, 1)
-    newCategories.splice(dropIndex, 0, draggedItem)
+    const newCategories = [...categories];
+    const [draggedItem] = newCategories.splice(draggedIndex, 1);
+    newCategories.splice(dropIndex, 0, draggedItem);
 
     // 새로운 순서로 저장
-    await reorderCategories(newCategories)
-    setDraggedIndex(null)
-    setDragOverIndex(null)
-  }
+    await reorderCategories(newCategories);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
 
   /**
    * 카테고리 삭제 핸들러
    * 시스템 카테고리와 기본 카테고리는 삭제 불가
    */
   const handleDelete = async (id: string) => {
-    const category = categories.find(c => c.id === id)
+    const category = categories.find((c) => c.id === id);
     if (category?.isSystem) {
-      alert(t('tooltips.categoryManager.cannotDeleteSystem'))
-      return
+      alert(t('tooltips.categoryManager.cannotDeleteSystem'));
+      return;
     }
     if (confirm(t('modal.categoryManager.deleteConfirm'))) {
       try {
-        await deleteCategory(id)
+        await deleteCategory(id);
       } catch (error) {
-        alert(t('tooltips.categoryManager.defaultCannotDelete'))
+        alert(t('tooltips.categoryManager.defaultCannotDelete'));
       }
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-[9999] p-4">
@@ -168,9 +168,7 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ onClose }) => 
         <div className="px-4 py-4 border-b border-white/20">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-semibold ai-gradient-text">
-                {t('modal.categoryManager.title')}
-              </h2>
+              <h2 className="text-lg font-semibold ai-gradient-text">{t('modal.categoryManager.title')}</h2>
               {/* 정보 툴팁 */}
               <InfoTooltip
                 title={t('tooltips.categoryManager.title')}
@@ -180,10 +178,7 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ onClose }) => 
               />
             </div>
             {/* 닫기 버튼 */}
-            <button
-              onClick={onClose}
-              className="glass-button-primary !p-2 !px-3"
-            >
+            <button onClick={onClose} className="glass-button-primary !p-2 !px-3">
               ✕
             </button>
           </div>
@@ -219,17 +214,12 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ onClose }) => 
                     <span className="text-xs glass-text opacity-50 font-mono ml-1 flex-shrink-0">{index + 1}</span>
                   )}
                   {/* 카테고리 색상 표시 */}
-                  <div
-                    className="w-4 h-4 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: getColorHex(category.color) }}
-                  />
+                  <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: getColorHex(category.color) }} />
                   {/* 카테고리 이름 */}
                   <div className="flex-1 overflow-hidden">
                     <span className="text-sm font-medium glass-text block truncate" title={category.name}>
                       {category.name}
-                      {category.isSystem && (
-                        <span className="ml-1 text-xs opacity-60">{t('tooltips.categoryManager.system')}</span>
-                      )}
+                      {category.isSystem && <span className="ml-1 text-xs opacity-60">{t('tooltips.categoryManager.system')}</span>}
                     </span>
                   </div>
                 </div>
@@ -271,7 +261,9 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ onClose }) => 
           <div className="text-xs glass-text opacity-60 space-y-1">
             <p>💡 Tip: {t('tooltips.categoryManager.tips.dragTip')}</p>
             <p>📝 Edit: {t('tooltips.categoryManager.tips.editTip')}</p>
-            <p>🔢 {t('actions.ordering')}: {t('tooltips.categoryManager.tips.orderTip')}</p>
+            <p>
+              🔢 {t('actions.ordering')}: {t('tooltips.categoryManager.tips.orderTip')}
+            </p>
           </div>
         </div>
       </div>
@@ -280,16 +272,16 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ onClose }) => 
       <CategoryEditModal
         isOpen={isModalOpen}
         onClose={() => {
-          setIsModalOpen(false)
-          setEditingCategory(null)
+          setIsModalOpen(false);
+          setEditingCategory(null);
         }}
         onSave={handleSave}
         category={editingCategory}
         title={editingCategory ? t('modal.categoryManager.editCategory') : t('modal.categoryManager.addCategory')}
       />
     </div>
-  )
-}
+  );
+};
 
 /**
  * Chrome 탭 그룹 색상을 HEX 색상 코드로 변환
@@ -298,15 +290,15 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ onClose }) => 
  */
 function getColorHex(color: chrome.tabGroups.ColorEnum): string {
   const colorMap: Record<chrome.tabGroups.ColorEnum, string> = {
-    blue: "#3B82F6",    // 파란색
-    cyan: "#06B6D4",    // 청록색
-    green: "#10B981",   // 초록색
-    yellow: "#F59E0B",  // 노란색
-    orange: "#F97316",  // 주황색
-    red: "#EF4444",     // 빨간색
-    pink: "#EC4899",    // 분홍색
-    purple: "#8B5CF6",  // 보라색
-    grey: "#6B7280"     // 회색
-  }
-  return colorMap[color] || colorMap.grey
+    blue: '#3B82F6', // 파란색
+    cyan: '#06B6D4', // 청록색
+    green: '#10B981', // 초록색
+    yellow: '#F59E0B', // 노란색
+    orange: '#F97316', // 주황색
+    red: '#EF4444', // 빨간색
+    pink: '#EC4899', // 분홍색
+    purple: '#8B5CF6', // 보라색
+    grey: '#6B7280', // 회색
+  };
+  return colorMap[color] || colorMap.grey;
 }
