@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Build outputs
+dist/
+build/
+.output/
+*.min.js
+*.min.css
+
+# Cache and temporary files
+.cache/
+.tmp/
+temp/
+tmp/
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Environment files
+.env*
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Specific to this project
+public/_favicon/
+public/icon/
+*.d.ts

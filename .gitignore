@@ -39,3 +39,8 @@ next-env.d.ts
 
 # turbo
 .turbo
+
+# Claude
+.claude/
+.mcp.json
+CLAUDE.md

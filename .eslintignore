@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+.output/
+*.min.js
+*.min.css
+
+# Configuration files
+*.config.js
+*.config.ts
+postcss.config.js
+tailwind.config.js
+
+# Cache and temporary files
+.cache/
+.tmp/
+temp/
+tmp/
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Type definitions
+*.d.ts
+
+# Public assets
+public/
